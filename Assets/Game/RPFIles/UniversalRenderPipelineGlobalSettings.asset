@@ -60,17 +60,7 @@ MonoBehaviour:
       - rid: 8568970695084605464
       - rid: 8568970695084605465
     m_RuntimeSettings:
-      m_List:
-      - rid: 8568970695084605442
-      - rid: 8568970695084605446
-      - rid: 8568970695084605450
-      - rid: 8568970695084605451
-      - rid: 8568970695084605453
-      - rid: 8568970695084605454
-      - rid: 8568970695084605455
-      - rid: 8568970695084605457
-      - rid: 8568970695084605462
-      - rid: 8568970695084605464
+      m_List: []
   m_AssetVersion: 8
   m_ObsoleteDefaultVolumeProfile: {fileID: 0}
   m_RenderingLayerNames:
@@ -328,8 +318,8 @@ MonoBehaviour:
         traceVirtualOffsetRT: {fileID: -5126288278712620388, guid: ff2cbab5da58bf04d82c5f34037ed123, type: 3}
         skyOcclusionCS: {fileID: -6772857160820960102, guid: 5a2a534753fbdb44e96c3c78b5a6999d, type: 3}
         skyOcclusionRT: {fileID: -5126288278712620388, guid: 5a2a534753fbdb44e96c3c78b5a6999d, type: 3}
-        renderingLayerCS: {fileID: 0}
-        renderingLayerRT: {fileID: 0}
+        renderingLayerCS: {fileID: -6772857160820960102, guid: 94a070d33e408384bafc1dea4a565df9, type: 3}
+        renderingLayerRT: {fileID: -5126288278712620388, guid: 94a070d33e408384bafc1dea4a565df9, type: 3}
     - rid: 8568970695084605461
       type: {class: ProbeVolumeDebugResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
       data:
