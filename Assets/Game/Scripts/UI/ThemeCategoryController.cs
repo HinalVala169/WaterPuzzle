@@ -18,17 +18,23 @@ public class ThemeCategoryController : MonoBehaviour
 
     private RectTransform targetHighlight;
 
+    [Header("Button Views")]
+    [SerializeField] private CategoryButtonView bottleView;
+    [SerializeField] private CategoryButtonView bgView;
+    [SerializeField] private CategoryButtonView colorView;
+
     private void Start()
     {
         ShowCategory(ThemeCategory.Bottle);
-        highlight.position = bottleBtn.position; // snap on start
+        highlight.anchoredPosition = bottleBtn.anchoredPosition; // snap on start
     }
 
     // ---------- Button Calls ----------
     public void SelectBottle()
-    {
-        ShowCategory(ThemeCategory.Bottle);
-    }
+{
+    Debug.Log("Bottle CLICKED");
+    ShowCategory(ThemeCategory.Bottle);
+}
 
     public void SelectBackground()
     {
@@ -43,24 +49,33 @@ public class ThemeCategoryController : MonoBehaviour
     // ---------- Core Logic ----------
     private void ShowCategory(ThemeCategory category)
     {
+        // Scroll views
         bottleScroll.SetActive(false);
         bgScroll.SetActive(false);
         colorScroll.SetActive(false);
+
+        // Reset icons
+        bottleView.SetSelected(false);
+        bgView.SetSelected(false);
+        colorView.SetSelected(false);
 
         switch (category)
         {
             case ThemeCategory.Bottle:
                 bottleScroll.SetActive(true);
+                bottleView.SetSelected(true);
                 targetHighlight = bottleBtn;
                 break;
 
             case ThemeCategory.Background:
                 bgScroll.SetActive(true);
+                bgView.SetSelected(true);
                 targetHighlight = bgBtn;
                 break;
 
             case ThemeCategory.Color:
                 colorScroll.SetActive(true);
+                colorView.SetSelected(true);
                 targetHighlight = colorBtn;
                 break;
         }
@@ -70,9 +85,9 @@ public class ThemeCategoryController : MonoBehaviour
     {
         if (targetHighlight == null) return;
 
-        highlight.position = Vector3.Lerp(
-            highlight.position,
-            targetHighlight.position,
+        highlight.anchoredPosition = Vector2.Lerp(
+            highlight.anchoredPosition,
+            targetHighlight.anchoredPosition,
             Time.deltaTime * highlightMoveSpeed
         );
     }
