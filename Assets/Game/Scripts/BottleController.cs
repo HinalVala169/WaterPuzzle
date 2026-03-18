@@ -63,10 +63,13 @@ public class BottleController : MonoBehaviour
 
     public StopperController stopper;
     private bool stopperCommand;//comando para assim que possível ativar a rolha
+    private Collider2D col;
 
     private void Awake()
     {
         bottleColors = new Color[4];
+        col = GetComponent<Collider2D>();
+
     }
 
     private void Start()
@@ -88,6 +91,10 @@ public class BottleController : MonoBehaviour
 
     private void Update()
     {
+        if (GameController.Instance != null)
+        {
+            col.enabled = !GameController.Instance.shouldGamePause;
+        }
         if (stopperCommand && isBeingFilled)
         {
             stopperCommand = false;
@@ -98,6 +105,8 @@ public class BottleController : MonoBehaviour
     //método que vai fazer a transferência de líquidos
     public void StartColorTransfer()
     {
+        if (GameController.Instance != null && GameController.Instance.shouldGamePause)
+        return; 
         //pegando a quantidade de cores no outro recipiente
         newNumberOfColorsInOtherBottle = bottleControllerRef.numberOfColorsInBottle;
 
@@ -408,6 +417,8 @@ public class BottleController : MonoBehaviour
     //animação que vai rotacionar o recipiente
     private IEnumerator RotateBottle()
     {
+        if (GameController.Instance != null && GameController.Instance.shouldGamePause)
+                yield break;
         float t = 0;
         float lerpValue;
         float angleValue;
@@ -527,6 +538,8 @@ public class BottleController : MonoBehaviour
     //animação que vai mover o recipiente para proximo do outro recipiente
     private IEnumerator MoveBottle()
     {
+        if (GameController.Instance != null && GameController.Instance.shouldGamePause)
+                 yield break;
         //para que a animação corra por completo antes da fase terminar
         underAnimation = true;
 

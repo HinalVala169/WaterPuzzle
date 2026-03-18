@@ -17,6 +17,12 @@ public class GameController : MonoBehaviour
     //texto da quantidade de jogadas
     public TextMeshProUGUI movesText;
 
+    public bool shouldGamePause;
+    public bool IsPaused()
+    {
+        return shouldGamePause;
+    }
+
     private void Awake()
     {
         if (Instance != null)
