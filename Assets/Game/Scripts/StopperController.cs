@@ -17,6 +17,7 @@ public class StopperController : MonoBehaviour
 
     private void PlayEffect()
     {
+        // PlayEffect();
         animator.Play("DoneEffect");
     }
 

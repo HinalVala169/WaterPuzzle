@@ -98,7 +98,9 @@ public class BottleController : MonoBehaviour
         if (stopperCommand && isBeingFilled)
         {
             stopperCommand = false;
-            stopper.Animate();//mandando animar a rolha
+
+            if (UIController.IsBottleTopEnabled) // ✅ ADD THIS
+                stopper.Animate();
         }
     }
 
@@ -522,14 +524,19 @@ public class BottleController : MonoBehaviour
         //verificando se o outro recipiente está cheio
         if (bottleControllerRef.CheckIfItsDone())
         {
-            bc.VerifyVictory();//verificando se o jogo acabou
+            bc.VerifyVictory();
 
-            //if (!bc.SomeBottleIsUnderAnimation())
-            if (!bottleControllerRef.GetIsBeingFilled())//se a outra bottle está sendo enchida
-                bottleControllerRef.SetStopperCommand();
-
-            else//se não estiver sendo enchida
-                bottleControllerRef.stopper.Animate();//mandando animar a rolha
+            // ✅ CHECK HERE
+            if (UIController.IsBottleTopEnabled)
+            {
+            if (!bc.SomeBottleIsUnderAnimation())
+            {
+                if (!bottleControllerRef.GetIsBeingFilled())
+                    bottleControllerRef.SetStopperCommand();
+                else
+                    bottleControllerRef.stopper.Animate();
+            }
+            }
         }
 
         StartCoroutine(MoveBottleBack());

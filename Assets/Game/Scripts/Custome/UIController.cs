@@ -45,6 +45,14 @@ public class UIController : MonoBehaviour
 
     #region Toggle Buttons
 
+    public static bool IsBottleTopEnabled
+    {
+        get
+        {
+            return PlayerPrefs.GetInt("BottleTop", 1) == 1;
+        }
+    }
+
     public void OnSoundClick()
     {
         isSoundOn = !isSoundOn;
