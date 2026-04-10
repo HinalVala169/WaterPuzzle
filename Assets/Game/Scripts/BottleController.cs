@@ -275,15 +275,17 @@ public class BottleController : MonoBehaviour
     //método que vai verificar para qual lado o recipiente deve rotacionar 
     private void ChoseRotationPointAndDirection()
     {
-        if (transform.position.x > bottleControllerRef.transform.position.x)
+       bool isRightBottle = transform.position.x > bottleControllerRef.transform.position.x;
+
+        if (isRightBottle)
         {
             chosenRotationPoint = leftRotationPoint;
-            directionMultiplier = -1f;
+            directionMultiplier = 1f; // tilt left
         }
         else
         {
             chosenRotationPoint = rightRotationPoint;
-            directionMultiplier = 1f;
+            directionMultiplier = -1f; // tilt right
         }
     }
 
@@ -435,7 +437,7 @@ public class BottleController : MonoBehaviour
             lerpValue = t / rotationSpeed;
             angleValue = Mathf.Lerp(0f, directionMultiplier * rotationValues[rotationIndex], lerpValue);
 
-            transform.RotateAround(chosenRotationPoint.position, Vector3.forward, lastAngleValue - angleValue);
+           transform.rotation = Quaternion.Euler(0, 0, angleValue);
 
             bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(angleValue));
 
@@ -500,7 +502,7 @@ public class BottleController : MonoBehaviour
             lerpValue = t / timeToRotate;
             angleValue = Mathf.Lerp(directionMultiplier * rotationValues[rotationIndex], 0f, lerpValue);
 
-            transform.RotateAround(chosenRotationPoint.position, Vector3.forward, lastAngleValue - angleValue);
+            transform.rotation = Quaternion.Euler(0, 0, angleValue);
 
             bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(angleValue));
 
@@ -539,41 +541,173 @@ public class BottleController : MonoBehaviour
             }
         }
 
-        StartCoroutine(MoveBottleBack());
+       StartCoroutine(MoveBottleBack());
+        //StartCoroutine(RotateBackOnly());
     }
+
+    private IEnumerator RotateBackOnly()
+{
+    float t = 0;
+    float startAngle = directionMultiplier * rotationValues[rotationIndex];
+
+    while (t < moveAnimationTime)
+    {
+        float angle = Mathf.Lerp(startAngle, 0f, t / moveAnimationTime);
+
+      //  transform.eulerAngles = new Vector3(0, 0, angle);
+
+        t += Time.deltaTime;
+        yield return null;
+    }
+
+    transform.eulerAngles = Vector3.zero;
+}
 
     //animação que vai mover o recipiente para proximo do outro recipiente
-    private IEnumerator MoveBottle()
+  private IEnumerator MoveBottle()
+{
+    if (GameController.Instance != null && GameController.Instance.shouldGamePause)
+        yield break;
+
+    underAnimation = true;
+
+    startPosition = transform.position;
+
+    Vector3 targetPos = bottleControllerRef.transform.position;
+
+    float xOffset = 0.6f;   // tweak this value
+    float yOffset = 0.5f;   // tweak this for height
+
+    if (transform.position.x > targetPos.x)
+        endPosition = targetPos + new Vector3(xOffset, yOffset, 0);
+    else
+        endPosition = targetPos + new Vector3(-xOffset, yOffset, 0);
+
+    float t = 0;
+
+    float startAngle = 0f;
+    float endAngle = directionMultiplier * rotationValues[rotationIndex];
+   float lastAngle = 0f;
+
+    while (t <= moveAnimationTime)
     {
-        if (GameController.Instance != null && GameController.Instance.shouldGamePause)
-                 yield break;
-        //para que a animação corra por completo antes da fase terminar
-        underAnimation = true;
+        float progress = t / moveAnimationTime;
 
-        startPosition = transform.position;
-        if (chosenRotationPoint == leftRotationPoint)
-            endPosition = bottleControllerRef.rightRotationPoint.position;
-        else
-            endPosition = bottleControllerRef.leftRotationPoint.position;
+        // MOVE
+        transform.position = Vector3.Lerp(startPosition, endPosition, progress);
 
-        float t = 0;
+        // ✅ ROTATE AROUND (FIXED)
+        float angle = Mathf.Lerp(startAngle, endAngle, progress);
+        float delta = angle - lastAngle;
 
-        while (t <= moveAnimationTime)
+        transform.rotation = Quaternion.Euler(0, 0, angle);
+
+        lastAngle = angle;
+
+        
+
+        t += Time.deltaTime;
+        yield return null;
+    }
+
+    transform.position = endPosition;
+
+    GameController.Instance.AddMove();
+
+    StartCoroutine(ContinuePour());
+}
+
+   private IEnumerator ContinuePour()
+{
+    float t = 0;
+    float duration = timeToRotate;
+
+    float fixedAngle = directionMultiplier * rotationValues[rotationIndex];
+    float lastFill = FillAmountCurve.Evaluate(fixedAngle);
+
+    while (t < duration)
+    {
+        float currentFill = FillAmountCurve.Evaluate(fixedAngle);
+
+        if (fillAmounts[numberOfColorsInBottle] > currentFill + 0.005f)
         {
-            transform.position = Vector3.Lerp(startPosition, endPosition, (t / moveAnimationTime));
+            if (!lineRenderer.enabled)
+            {
+                lineRenderer.startColor = topColor;
+                lineRenderer.endColor = topColor;
 
-            t += Time.deltaTime;
+                lineRenderer.SetPosition(0, chosenRotationPoint.position);
+                lineRenderer.SetPosition(1, chosenRotationPoint.position - Vector3.up * 1.45f);
 
-            yield return new WaitForEndOfFrame();
+                lineRenderer.enabled = true;
+            }
+
+            float delta = lastFill - currentFill;
+
+            bottleMaskSR.material.SetFloat("_FillAmount", currentFill);
+            bottleControllerRef.FillUp(delta);
+
+            lastFill = currentFill;
         }
 
-        transform.position = endPosition;
-
-        //adicionando uma jogada
-        GameController.Instance.AddMove();
-
-        StartCoroutine(RotateBottle());
+        t += Time.deltaTime;
+        yield return null;
     }
+
+    lineRenderer.enabled = false;
+
+    numberOfColorsInBottle -= numberOfColorsToTransfer;
+    bottleControllerRef.AdjustFillAmount(newNumberOfColorsInOtherBottle);
+
+    bottleControllerRef.UpdateTopColorValues();
+
+    StartCoroutine(MoveBackWithRotate());
+}
+
+private IEnumerator MoveBackWithRotate()
+{
+    startPosition = transform.position;
+    endPosition = originalPosition;
+
+    float t = 0;
+
+    float startAngle = directionMultiplier * rotationValues[rotationIndex];
+    float endAngle = 0f;
+
+    float lastAngle = startAngle;
+
+    while (t <= moveAnimationTime)
+    {
+        float progress = t / moveAnimationTime;
+
+        // MOVE BACK
+        transform.position = Vector3.Lerp(startPosition, endPosition, progress);
+
+        // FIXED ROTATION
+        float angle = Mathf.Lerp(startAngle, endAngle, progress);
+        float delta = angle - lastAngle;
+
+       transform.rotation = Quaternion.Euler(0, 0, angle);
+
+        lastAngle = angle;
+
+        t += Time.deltaTime;
+        yield return null;
+    }
+
+    transform.position = endPosition;
+
+    // Reset clean
+    transform.eulerAngles = Vector3.zero;
+
+    transform.GetComponent<SpriteRenderer>().sortingOrder -= 2;
+    bottleMaskSR.sortingOrder -= 2;
+
+    isFilling = false;
+    bottleControllerRef.SetIsBeingFilled(false);
+
+    underAnimation = false;
+}
 
     //animação que vai mover o recipiente de volta para o lugar
     private IEnumerator MoveBottleBack()
