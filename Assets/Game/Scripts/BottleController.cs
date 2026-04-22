@@ -64,6 +64,7 @@ public class BottleController : MonoBehaviour
     public StopperController stopper;
     private bool stopperCommand;//comando para assim que possível ativar a rolha
     private Collider2D col;
+    [SerializeField] private float pourHeightOffset = 1.5f;
 
     private void Awake()
     {
@@ -545,6 +546,20 @@ public class BottleController : MonoBehaviour
         //StartCoroutine(RotateBackOnly());
     }
 
+    private void SetupLineRenderer()
+{
+    lineRenderer.startColor = topColor;
+    lineRenderer.endColor = topColor;
+
+    Vector3 start = chosenRotationPoint.position;
+    Vector3 end = bottleControllerRef.transform.position + Vector3.up * pourHeightOffset;
+
+    lineRenderer.SetPosition(0, start);
+    lineRenderer.SetPosition(1, end);
+
+    lineRenderer.enabled = true;
+}
+
     private IEnumerator RotateBackOnly()
 {
     float t = 0;
@@ -575,8 +590,8 @@ public class BottleController : MonoBehaviour
 
     Vector3 targetPos = bottleControllerRef.transform.position;
 
-    float xOffset = 0.6f;   // tweak this value
-    float yOffset = 0.5f;   // tweak this for height
+    float xOffset = 0.5f;   // tweak this value
+    float yOffset = 0.8f;   // tweak this for height
 
     if (transform.position.x > targetPos.x)
         endPosition = targetPos + new Vector3(xOffset, yOffset, 0);
