@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ThemeCategoryController : MonoBehaviour
 {
@@ -27,6 +28,7 @@ public class ThemeCategoryController : MonoBehaviour
     {
         ShowCategory(ThemeCategory.Bottle);
         highlight.anchoredPosition = bottleBtn.anchoredPosition; // snap on start
+        ResetData();
     }
 
     // ---------- Button Calls ----------
@@ -41,9 +43,36 @@ public class ThemeCategoryController : MonoBehaviour
         ShowCategory(ThemeCategory.Background);
     }
 
+    public void ResetData()
+    {
+        ResetScroll(bottleScroll);
+        ResetScroll(bgScroll);
+        ResetScroll(colorScroll);
+    }
+
     public void SelectColor()
     {
         ShowCategory(ThemeCategory.Color);
+    }
+
+    private void ResetScroll(GameObject scrollObj)
+    {
+        if (scrollObj == null) return;
+
+        ScrollRect scrollRect = scrollObj.GetComponent<ScrollRect>();
+
+        if (scrollRect == null) return;
+
+        Canvas.ForceUpdateCanvases();
+
+        scrollRect.StopMovement();
+
+        // Top position
+        scrollRect.verticalNormalizedPosition = 1f;
+
+        LayoutRebuilder.ForceRebuildLayoutImmediate(
+            scrollRect.content
+        );
     }
 
     // ---------- Core Logic ----------
@@ -65,18 +94,22 @@ public class ThemeCategoryController : MonoBehaviour
                 bottleScroll.SetActive(true);
                 bottleView.SetSelected(true);
                 targetHighlight = bottleBtn;
+                ResetScroll(bottleScroll);
+
                 break;
 
             case ThemeCategory.Background:
                 bgScroll.SetActive(true);
                 bgView.SetSelected(true);
                 targetHighlight = bgBtn;
+                ResetScroll(bgScroll);
                 break;
 
             case ThemeCategory.Color:
                 colorScroll.SetActive(true);
                 colorView.SetSelected(true);
                 targetHighlight = colorBtn;
+                ResetScroll(colorScroll);
                 break;
         }
     }

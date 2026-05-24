@@ -1,16 +1,17 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BGItemUI : MonoBehaviour
+public class ThemeItemUI : MonoBehaviour
 {
     [SerializeField] private Image frame;
 
     [SerializeField] private Sprite normalSprite;
     [SerializeField] private Sprite selectedSprite;
 
-    [SerializeField] private int index; // must match manager list
+    [SerializeField] private int index;
 
-    // Optional: cache button (better performance/clean)
+    [SerializeField] private ThemeCategory category;
+
     private Button button;
 
     private void Awake()
@@ -21,25 +22,31 @@ public class BGItemUI : MonoBehaviour
 
     private void OnClick()
     {
-        if (BGSelectionManager.Instance != null)
+        if (ThemeSelectionManager.Instance != null)
         {
-            BGSelectionManager.Instance.SelectBG(index, this);
+            ThemeSelectionManager.Instance.SelectItem(
+                category,
+                index,
+                this
+            );
         }
     }
 
     public void SetSelected(bool isSelected)
     {
         if (frame != null)
-            frame.sprite = isSelected ? selectedSprite : normalSprite;
+        {
+            frame.sprite = isSelected
+                ? selectedSprite
+                : normalSprite;
+        }
     }
 
-    // ✅ (Optional but useful)
     public int GetIndex()
     {
         return index;
     }
 
-    // ✅ (Optional: auto-assign index from manager if needed later)
     public void SetIndex(int i)
     {
         index = i;
