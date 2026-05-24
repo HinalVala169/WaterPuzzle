@@ -12482,6 +12482,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   btPrefab: {fileID: 4053009413791580371, guid: 91920d648f7601b42a364718bac48547, type: 3}
+  bottlesController: {fileID: 763525419}
   ActiveUndoButton: {fileID: 83443183}
   InactiveUndoButton: {fileID: 1796016260}
   ActivePlus: {fileID: 345135322}
@@ -25897,7 +25898,7 @@ MonoBehaviour:
   - {fileID: -5622901713081898559, guid: 771ae1021db87ef41b0cb2e9e30ba674, type: 3}
   - {fileID: -796155573255488767, guid: 0689acab409066c43b503f6488e000f8, type: 3}
   - {fileID: 5181654206020448988, guid: 0314f18c7ab20284ea4980909c2b8e86, type: 3}
-  bottleSprites:
+  bottlePreviewSprites:
   - {fileID: -855298285791758126, guid: 29c66d4a6cc1bd745b8340df33c1ebc3, type: 3}
   - {fileID: 6937817954938267909, guid: 0769ca4351de3b945bbe018f8f5b2bcb, type: 3}
   - {fileID: -6470460504253458178, guid: 2b46d72123b47534c9c3d83d7b89e169, type: 3}
@@ -25910,6 +25911,32 @@ MonoBehaviour:
   - {fileID: -5099292496197868168, guid: 062e868c2246fd14fb4075f15b0eac57, type: 3}
   - {fileID: -2966200626249415253, guid: 926c9279168f53247bf1b0dc91a76759, type: 3}
   - {fileID: -1540426309290004842, guid: f4e93aea522791d41967a1efa1d1e28b, type: 3}
+  bottleUpSprites:
+  - {fileID: 21300000, guid: e4d0ee4fbc82d5a4ea208aaaa7789824, type: 3}
+  - {fileID: 21300000, guid: d758d6fd01e66434a9ad712e8f760551, type: 3}
+  - {fileID: 21300000, guid: de7f0d4e0b7d87b4881372b3c9219351, type: 3}
+  - {fileID: 21300000, guid: 4faefc5582adf9e4aa67e7ec7c9d78cf, type: 3}
+  - {fileID: 21300000, guid: 901b64fa557de1e44b5553991bf56b7a, type: 3}
+  - {fileID: 21300000, guid: c6067d478e2ec604e9b7696c841ff62f, type: 3}
+  - {fileID: 21300000, guid: 7c3cf863e2ba4154f95268cce3bc5621, type: 3}
+  - {fileID: 21300000, guid: 6f6a3a75e29a3204b961a07e48736f4d, type: 3}
+  - {fileID: 21300000, guid: c3fe802942eb7f64492f837b8fdeab4b, type: 3}
+  - {fileID: 21300000, guid: b7393485b95f2624ebb5a02962c4cc94, type: 3}
+  - {fileID: 21300000, guid: d33e60f5e5ef0224f93ee969d1bca4f4, type: 3}
+  - {fileID: 21300000, guid: 00434efe817963e468da3a289cc2f4c9, type: 3}
+  bottleFillSprites:
+  - {fileID: 21300000, guid: cf9a46903210db641999230f684abbbc, type: 3}
+  - {fileID: 21300000, guid: c47760875859b6b449afab62443385d1, type: 3}
+  - {fileID: 21300000, guid: 10947922b267f1641a21f5e68b4fa3fd, type: 3}
+  - {fileID: 21300000, guid: c5b342969c2a6d746968f5eaa2b3fbd0, type: 3}
+  - {fileID: 21300000, guid: aafcdca6f274c9246b726e52f986cd70, type: 3}
+  - {fileID: 21300000, guid: 0f084f0b8f18966429c3ecc2d7e60d93, type: 3}
+  - {fileID: 21300000, guid: f3ccf270b70675140b232bb8ece8ede5, type: 3}
+  - {fileID: 21300000, guid: b3c06b7343135d84fbceb018c1b53fff, type: 3}
+  - {fileID: 21300000, guid: 5bf1059b2bca81c4dae980e624cb2f4a, type: 3}
+  - {fileID: 21300000, guid: 2ce0244eecf65c249bb77e839c26e999, type: 3}
+  - {fileID: 21300000, guid: e187a2ef49bf33546b650ff2cae4ccf4, type: 3}
+  - {fileID: 21300000, guid: a8140b1678e943f4a9e508d22b2b3da3, type: 3}
   colorSprites:
   - {fileID: -855298285791758126, guid: 29c66d4a6cc1bd745b8340df33c1ebc3, type: 3}
   - {fileID: -855298285791758126, guid: 29c66d4a6cc1bd745b8340df33c1ebc3, type: 3}
@@ -25969,6 +25996,9 @@ MonoBehaviour:
   - {fileID: 1602048562}
   - {fileID: 1100096933}
   - {fileID: 44933659}
+  bottleTop: {fileID: 0}
+  bottleFill: {fileID: 0}
+  bottlesController: {fileID: 763525419}
 --- !u!1 &1660757222
 GameObject:
   m_ObjectHideFlags: 0
@@ -31551,7 +31581,7 @@ RectTransform:
   m_GameObject: {fileID: 2055023954}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 44933655}

@@ -12,7 +12,14 @@ public class ThemeSelectionManager : MonoBehaviour
 
     [Header("Sprites")]
     [SerializeField] private List<Sprite> bgSprites;
-    [SerializeField] private List<Sprite> bottleSprites;
+
+    // preview sprite in selection UI
+    [SerializeField] private List<Sprite> bottlePreviewSprites;
+
+    // actual gameplay bottle sprites
+    [SerializeField] private List<Sprite> bottleUpSprites;
+    [SerializeField] private List<Sprite> bottleFillSprites;
+
     [SerializeField] private List<Sprite> colorSprites;
 
     [Header("UI Items")]
@@ -24,6 +31,13 @@ public class ThemeSelectionManager : MonoBehaviour
     private int currentBottleIndex = -1;
     private int currentColorIndex = -1;
 
+    [Header("Preview Bottle")]
+    [SerializeField] private Image bottleTop;
+    [SerializeField] private Image bottleFill;
+
+    [Header("References")]
+    [SerializeField] private BottlesController bottlesController;
+
     private void Awake()
     {
         Instance = this;
@@ -31,7 +45,7 @@ public class ThemeSelectionManager : MonoBehaviour
 
     private void Start()
     {
-        Invoke(nameof(SetDefaultSelections), 0.1f);
+        SetDefaultSelections();
     }
 
     private void SetDefaultSelections()
@@ -47,7 +61,7 @@ public class ThemeSelectionManager : MonoBehaviour
             ThemeCategory.Bottle,
             "SelectedBottle",
             bottleItems,
-            bottleSprites
+            bottlePreviewSprites
         );
 
         SelectDefault(
@@ -59,10 +73,10 @@ public class ThemeSelectionManager : MonoBehaviour
     }
 
     private void SelectDefault(
-    ThemeCategory category,
-    string saveKey,
-    List<ThemeItemUI> items,
-    List<Sprite> sprites)
+        ThemeCategory category,
+        string saveKey,
+        List<ThemeItemUI> items,
+        List<Sprite> sprites)
     {
         if (items.Count == 0 || sprites.Count == 0)
             return;
@@ -72,13 +86,11 @@ public class ThemeSelectionManager : MonoBehaviour
         if (defaultIndex < 0 || defaultIndex >= items.Count)
             defaultIndex = 0;
 
-        // Reset selection first
         foreach (var item in items)
         {
             item.SetSelected(false);
         }
 
-        // Force first selection
         SelectItem(category, defaultIndex, items[defaultIndex]);
     }
 
@@ -90,6 +102,7 @@ public class ThemeSelectionManager : MonoBehaviour
         switch (category)
         {
             case ThemeCategory.Background:
+
                 SelectCategory(
                     index,
                     selectedItem,
@@ -99,32 +112,77 @@ public class ThemeSelectionManager : MonoBehaviour
                     ref currentBGIndex,
                     "SelectedBG"
                 );
+
                 break;
 
             case ThemeCategory.Bottle:
+
                 SelectCategory(
                     index,
                     selectedItem,
                     bottleItems,
-                    bottleSprites,
+                    bottlePreviewSprites,
                     gameplayBottle,
                     ref currentBottleIndex,
                     "SelectedBottle"
                 );
+
+                // Update preview bottle
+                SetBottlePreview(index);
+
+                // Update gameplay bottles
+                if (bottlesController != null &&
+                    index >= 0 &&
+                    index < bottleUpSprites.Count &&
+                    index < bottleFillSprites.Count)
+                {
+                    bottlesController.ChangeBottleTheme(
+                        bottleUpSprites[index],
+                        bottleFillSprites[index]
+                    );
+                }
+
                 break;
 
             case ThemeCategory.Color:
+
                 SelectCategory(
                     index,
                     selectedItem,
                     colorItems,
                     colorSprites,
-                    gameplayBottle, // apply on bottle if needed
+                    gameplayBottle,
                     ref currentColorIndex,
                     "SelectedColor"
                 );
+
                 break;
         }
+    }
+
+    private void SetBottlePreview(int index)
+    {
+        if (index < 0 ||
+            index >= bottleUpSprites.Count ||
+            index >= bottleFillSprites.Count)
+            return;
+
+        if (bottleTop != null)
+        {
+            bottleTop.sprite =
+                bottleUpSprites[index];
+        }
+
+        if (bottleFill != null)
+        {
+            bottleFill.sprite =
+                bottleFillSprites[index];
+        }
+    }
+
+    public int GetCurrentBottleIndex()
+    {
+        return currentBottleIndex;
     }
 
     private void SelectCategory(
@@ -139,7 +197,9 @@ public class ThemeSelectionManager : MonoBehaviour
         if (currentIndex == index)
             return;
 
-        if (index < 0 || index >= items.Count || index >= sprites.Count)
+        if (index < 0 ||
+            index >= items.Count ||
+            index >= sprites.Count)
             return;
 
         foreach (var item in items)
@@ -151,12 +211,31 @@ public class ThemeSelectionManager : MonoBehaviour
 
         if (targetImage != null)
         {
-            targetImage.sprite = sprites[index];
+            targetImage.sprite =
+                sprites[index];
         }
 
         PlayerPrefs.SetInt(saveKey, index);
         PlayerPrefs.Save();
 
         currentIndex = index;
+    }
+
+    public Sprite GetBottleUpSprite(int index)
+    {
+        if (index >= 0 &&
+            index < bottleUpSprites.Count)
+            return bottleUpSprites[index];
+
+        return null;
+    }
+
+    public Sprite GetBottleFillSprite(int index)
+    {
+        if (index >= 0 &&
+            index < bottleFillSprites.Count)
+            return bottleFillSprites[index];
+
+        return null;
     }
 }

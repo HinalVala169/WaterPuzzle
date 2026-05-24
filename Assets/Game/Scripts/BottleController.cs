@@ -66,6 +66,10 @@ public class BottleController : MonoBehaviour
     private Collider2D col;
     [SerializeField] private float pourHeightOffset = 1.5f;
 
+        [Header("Theme")]
+    [SerializeField] private SpriteRenderer bottleUpRenderer;
+    [SerializeField] private SpriteRenderer bottleFillRenderer;
+
     private void Awake()
     {
         bottleColors = new Color[4];
@@ -89,6 +93,25 @@ public class BottleController : MonoBehaviour
         //método que vai verificar a quantidade de líquidos dentro do recipiente e alterar valores dentro das variáveis para o funcionamento do jogo
         UpdateTopColorValues();
     }
+
+public void SetTheme(
+    Sprite upSprite,
+    Sprite fillSprite)
+{
+    if (bottleUpRenderer != null
+        && upSprite != null)
+    {
+        bottleUpRenderer.sprite =
+            upSprite;
+    }
+
+    if (bottleFillRenderer != null
+        && fillSprite != null)
+    {
+        bottleFillRenderer.sprite =
+            fillSprite;
+    }
+}
 
     private void Update()
     {

@@ -7,7 +7,7 @@ public class BottlesController : MonoBehaviour
     [SerializeField] private BottleController btPrefab;
 
     //array dos recipientes
-    private BottleController[] bottleController;
+    [SerializeField] private BottlesController bottlesController;
 
     //variável que indica a quantidade de recipientes na tela
     private int bottlesAmount = 0;
@@ -23,6 +23,7 @@ public class BottlesController : MonoBehaviour
 
     //histórico de jogadas
     private Historic[] historic;
+    private BottleController[] bottleController;
 
     //quantidade de vezes que pode voltar
     private int availableUndo = 0;
@@ -34,6 +35,8 @@ public class BottlesController : MonoBehaviour
     //referencia ao botão da interface de adicionar novos recipientes
     [SerializeField] private GameObject ActivePlus;
     [SerializeField] private GameObject InactivePlus;
+
+
 
     private void Awake()
     {
@@ -57,8 +60,49 @@ public class BottlesController : MonoBehaviour
 
         bottleController[bottlesIndex] = bottle;
 
+        if (ThemeSelectionManager.Instance != null)
+        {
+            int index =
+                ThemeSelectionManager.Instance
+                .GetCurrentBottleIndex();
+
+            Sprite upSprite =
+                ThemeSelectionManager.Instance
+                .GetBottleUpSprite(index);
+
+            Sprite fillSprite =
+                ThemeSelectionManager.Instance
+                .GetBottleFillSprite(index);
+
+            bottle.SetTheme(
+                upSprite,
+                fillSprite
+            );
+        }
+
         //adicionando 1 ao contador
         bottlesIndex++;
+    }
+
+
+  
+   public void ChangeBottleTheme(
+        Sprite upSprite,
+        Sprite fillSprite)
+    {
+        for (int i = 0;
+            i < bottlesAmount;
+            i++)
+        {
+            if (bottleController[i] != null)
+            {
+                bottleController[i]
+                    .SetTheme(
+                        upSprite,
+                        fillSprite
+                    );
+            }
+        }
     }
 
     //método que vai varrer o array para verificar a vitoria
@@ -81,6 +125,16 @@ public class BottlesController : MonoBehaviour
         {
             LoadNextLevel();
         }
+    }
+    public void SetBottlePrefab(BottleController newPrefab)
+    {
+        if (newPrefab == null)
+            return;
+
+        btPrefab = newPrefab;
+
+        Debug.Log("Bottle prefab changed to: "
+                + newPrefab.name);
     }
 
     //método que vai ser chamado para carregar o novo level
