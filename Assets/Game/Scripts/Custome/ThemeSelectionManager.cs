@@ -167,7 +167,6 @@ public class ThemeSelectionManager : MonoBehaviour
             a.rectTransform.anchoredPosition.x.CompareTo(b.rectTransform.anchoredPosition.x));
 
         string[] shaderProps = new string[] { "_C1", "_C2", "_C3", "_C4" };
-        List<Color> rawColors = new List<Color>();
         List<Color> uniqueColors = new List<Color>();
 
         foreach (var img in liquidImages)
@@ -177,13 +176,15 @@ public class ThemeSelectionManager : MonoBehaviour
             {
                 if (mat.HasProperty(prop))
                 {
-                    Color c = mat.GetColor(prop);
-                    c.a = 1f;
-                    rawColors.Add(c);
+                    Color raw = mat.GetColor(prop);
+                    raw.a = 1f;
 
-                    if (!ContainsSimilarColor(uniqueColors, c))
+                    // Keep original card colors intact; only lift ultra-dark navy so it doesn't vanish into the dark blue BG
+                    Color visible = EnsureVisibleAgainstBlueBG(raw);
+
+                    if (!ContainsSimilarColor(uniqueColors, visible, 0.05f))
                     {
-                        uniqueColors.Add(c);
+                        uniqueColors.Add(visible);
                     }
                 }
             }
@@ -191,7 +192,11 @@ public class ThemeSelectionManager : MonoBehaviour
 
         if (uniqueColors.Count == 0) return null;
 
-        // Build the 12-slot palette using ONLY the colors present on this card,
+        // If a card's 3 preview bottles have fewer unique colors than the level needs (e.g. 4 colors on a 5- or 7-bottle level),
+        // generate rich, saturated companion shades in the same color family so bottles never look chalky or duplicate a color.
+        ExpandPaletteWithinTheme(uniqueColors, 12);
+
+        // Build the 12-slot palette using ONLY the colors from this card's theme,
         // placing unique colors into the exact slot indices LevelBuilder uses first.
         Color[] palette = new Color[12];
         int uCount = uniqueColors.Count;
@@ -202,24 +207,73 @@ public class ThemeSelectionManager : MonoBehaviour
             palette[slot] = uniqueColors[p % uCount];
         }
 
-        // Ensure slot 3 (used in Level 0 with slot 0, and Level 1 with slots 0 & 5) is distinct from slots 0 and 5
-        if (uCount <= 9 && uCount >= 2)
-        {
-            palette[3] = uniqueColors[1 % uCount];
-        }
-
         return palette;
     }
 
-    private static bool ContainsSimilarColor(List<Color> list, Color candidate)
+    // Keeps the card's deep/bright contrast intact while lifting only the ultra-dark navy shade
+    // (V < 0.42 in the blue range) to a rich Deep Ocean Blue so it doesn't blend into the night-sky background.
+    private static Color EnsureVisibleAgainstBlueBG(Color c)
     {
-        const float threshold = 0.02f;
+        Color.RGBToHSV(c, out float h, out float s, out float v);
+
+        // Only adjust dark navy-blue shades (H: 0.52..0.72, V < 0.45) that match the dark blue background (#0B285B)
+        if (h >= 0.52f && h <= 0.72f && v < 0.45f)
+        {
+            // Keep it a deep, rich ocean blue (high saturation, medium-deep value) so it preserves the card's dark contrast
+            // while remaining clearly visible against the dark background
+            h = Mathf.Clamp(h, 0.56f, 0.58f);
+            s = Mathf.Max(s, 0.86f);
+            v = 0.66f;
+            Color lifted = Color.HSVToRGB(h, s, v);
+            lifted.a = 1f;
+            return lifted;
+        }
+
+        c.a = 1f;
+        return c;
+    }
+
+    // Expands a 4-color themed card with rich, high-saturation companion shades in the same hue family
+    // (no pale/chalky pastels) so 5-, 7-, and 9-bottle levels look vibrant and cohesive.
+    private static void ExpandPaletteWithinTheme(List<Color> uniqueColors, int targetCount)
+    {
+        if (uniqueColors == null || uniqueColors.Count == 0 || uniqueColors.Count >= targetCount)
+            return;
+
+        int initialCount = uniqueColors.Count;
+        float sumH = 0f;
+        for (int i = 0; i < initialCount; i++)
+        {
+            Color.RGBToHSV(uniqueColors[i], out float h, out _, out _);
+            sumH += h;
+        }
+        float avgH = sumH / initialCount;
+
+        // High-saturation, vibrant companion shades around the card's hue family
+        float[] hueOffsets = new float[] {  0.07f, -0.06f,  0.10f, -0.10f,  0.04f, -0.04f,  0.13f, -0.13f };
+        float[] satValues  = new float[] {  0.86f,  0.88f,  0.82f,  0.90f,  0.78f,  0.85f,  0.84f,  0.88f };
+        float[] valValues  = new float[] {  0.96f,  0.78f,  0.88f,  0.64f,  0.72f,  0.92f,  0.82f,  0.70f };
+
+        for (int i = 0; i < hueOffsets.Length && uniqueColors.Count < targetCount; i++)
+        {
+            float candH = Mathf.Repeat(avgH + hueOffsets[i], 1f);
+            Color candidate = EnsureVisibleAgainstBlueBG(Color.HSVToRGB(candH, satValues[i], valValues[i]));
+            if (!ContainsSimilarColor(uniqueColors, candidate, 0.07f))
+            {
+                uniqueColors.Add(candidate);
+            }
+        }
+    }
+
+    private static bool ContainsSimilarColor(List<Color> list, Color candidate, float threshold = 0.02f)
+    {
         for (int i = 0; i < list.Count; i++)
         {
             Color existing = list[i];
-            if (Mathf.Abs(existing.r - candidate.r) < threshold &&
-                Mathf.Abs(existing.g - candidate.g) < threshold &&
-                Mathf.Abs(existing.b - candidate.b) < threshold)
+            float dr = existing.r - candidate.r;
+            float dg = existing.g - candidate.g;
+            float db = existing.b - candidate.b;
+            if (Mathf.Sqrt(dr * dr + dg * dg + db * db) < threshold * 1.732f)
             {
                 return true;
             }
