@@ -5,11 +5,14 @@ public class ThemeItemUI : MonoBehaviour
 {
     [SerializeField] private Image frame;
 
+    // frame sprites for selected / unselected state
     [SerializeField] private Sprite normalSprite;
     [SerializeField] private Sprite selectedSprite;
 
-    [SerializeField] private int index;
+    // preview image inside the card (optional – used for colour-palette cards)
+    [SerializeField] private Image previewImage;
 
+    [SerializeField] private int index;
     [SerializeField] private ThemeCategory category;
 
     private Button button;
@@ -24,31 +27,30 @@ public class ThemeItemUI : MonoBehaviour
     {
         if (ThemeSelectionManager.Instance != null)
         {
-            ThemeSelectionManager.Instance.SelectItem(
-                category,
-                index,
-                this
-            );
+            ThemeSelectionManager.Instance.SelectItem(category, index, this);
         }
     }
+
+    // ── Setters ──────────────────────────────────────────────────
 
     public void SetSelected(bool isSelected)
     {
         if (frame != null)
-        {
-            frame.sprite = isSelected
-                ? selectedSprite
-                : normalSprite;
-        }
+            frame.sprite = isSelected ? selectedSprite : normalSprite;
     }
 
-    public int GetIndex()
+    /// <summary>
+    /// Swaps the small preview thumbnail shown on the card.
+    /// Used by ThemeSelectionManager to auto-populate colour cards from the database.
+    /// </summary>
+    public void SetPreviewSprite(Sprite sprite)
     {
-        return index;
+        if (previewImage != null)
+            previewImage.sprite = sprite;
     }
 
-    public void SetIndex(int i)
-    {
-        index = i;
-    }
+    // ── Getters / setters ────────────────────────────────────────
+
+    public int GetIndex()       => index;
+    public void SetIndex(int i) => index = i;
 }

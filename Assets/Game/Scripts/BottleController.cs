@@ -1,20 +1,25 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BottleController : MonoBehaviour
 {
     [SerializeField] private Color[] bottleColors;
-
     [SerializeField] private int[] colorsIndex;
 
-    //paleta com as cores normais
-    [SerializeField] private Color[] normalColorsPallet;
-    //pateta com as cores para pessoas com protanopia
-    [SerializeField] private Color[] protanopiaColorsPallet;
-    //paleta com as cores para pessoas com tritanopia
-    [SerializeField] private Color[] tritanopiaColorsPallet;
-    //paleta com as cores para pessoas com deuteranopia
-    [SerializeField] private Color[] deuteranopiaColorsPallet;
+    // ── Color Palettes ────────────────────────────────────────────────────────
+    // Add one entry per color-palette card shown in your UI.
+    // Palette 0 = first card, Palette 1 = second card, etc.
+    // Each palette needs exactly as many colors as your highest colorsIndex value + 1.
+    [System.Serializable]
+    public class ColorPaletteEntry
+    {
+        [Tooltip("12 colors — slot index matches colorsIndex values in LevelBuilder")]
+        public Color[] colors = new Color[12];
+    }
+
+    [Header("Color Palettes (one per card, in card order)")]
+    [SerializeField] private List<ColorPaletteEntry> colorPalettes = new List<ColorPaletteEntry>();
 
     [SerializeField] private SpriteRenderer bottleMaskSR;
 
@@ -66,6 +71,70 @@ public class BottleController : MonoBehaviour
     private Collider2D col;
     [SerializeField] private float pourHeightOffset = 1.5f;
 
+    [Header("Pour Effects")]
+    [SerializeField] private Transform pourStartPoint;
+    [SerializeField] private Transform pourEndPoint;
+    [SerializeField] private ParticleSystem pourParticles;
+    [SerializeField] private ParticleSystem splashParticles;
+    private bool isPouringStreamActive = false;
+
+    [SerializeField] private float localLipXOffset = 0.12f;
+    [SerializeField] private float localLipYOffset = 0.72f;
+    [SerializeField] private float pourEndTargetYOffset = 0.0f;
+
+    // Fallback used only when a bottle has no pourEndPoint child assigned/found.
+    // Tune this in the Inspector to match your fill mask's actual max height
+    // (this used to be a hardcoded "0.75f" buried in code, which is why the
+    // stream could land outside the bottle if it didn't match your shader/mask setup).
+    [SerializeField] private float fallbackMaxFillHeight = 0.75f;
+
+    private Transform pourParticlesOriginalParent;
+    private Transform splashParticlesOriginalParent;
+
+    private void PlayPourEffects()
+    {
+        if (pourParticles != null)
+        {
+            var main = pourParticles.main;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.startColor = topColor;
+            if (pourParticlesOriginalParent == null)
+                pourParticlesOriginalParent = pourParticles.transform.parent;
+            pourParticles.transform.SetParent(null);
+            pourParticles.Play();
+        }
+        if (splashParticles != null)
+        {
+            var main = splashParticles.main;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.startColor = topColor;
+            if (splashParticlesOriginalParent == null)
+                splashParticlesOriginalParent = splashParticles.transform.parent;
+            splashParticles.transform.SetParent(null);
+            splashParticles.Play();
+        }
+    }
+
+    private void StopPourEffects()
+    {
+        if (pourParticles != null)
+        {
+            pourParticles.Stop();
+            if (pourParticlesOriginalParent != null && pourParticles.transform.parent == null)
+            {
+                pourParticles.transform.SetParent(pourParticlesOriginalParent);
+            }
+        }
+        if (splashParticles != null)
+        {
+            splashParticles.Stop();
+            if (splashParticlesOriginalParent != null && splashParticles.transform.parent == null)
+            {
+                splashParticles.transform.SetParent(splashParticlesOriginalParent);
+            }
+        }
+    }
+
         [Header("Theme")]
     [SerializeField] private SpriteRenderer bottleUpRenderer;
     [SerializeField] private SpriteRenderer bottleFillRenderer;
@@ -92,6 +161,47 @@ public class BottleController : MonoBehaviour
 
         //método que vai verificar a quantidade de líquidos dentro do recipiente e alterar valores dentro das variáveis para o funcionamento do jogo
         UpdateTopColorValues();
+
+        // Auto-find components if not assigned
+        if (lineRenderer == null)
+        {
+            lineRenderer = GetComponentInChildren<LineRenderer>();
+        }
+        if (pourParticles == null)
+        {
+            pourParticles = GetComponentInChildren<ParticleSystem>();
+        }
+        if (pourStartPoint == null)
+        {
+            pourStartPoint = FindDeepChild(transform, "PourStartPoint");
+        }
+        if (pourEndPoint == null)
+        {
+            pourEndPoint = FindDeepChild(transform, "PourEndPoint");
+        }
+
+        if (pourStartPoint == null)
+            Debug.LogWarning($"[{gameObject.name}] PourStartPoint not found (searched all children). Falling back to computed lip offset — assign it in the Inspector or add a child named exactly 'PourStartPoint' for accurate pouring.");
+        if (pourEndPoint == null)
+            Debug.LogWarning($"[{gameObject.name}] PourEndPoint not found (searched all children). Falling back to computed fill-surface offset — assign it in the Inspector or add a child named exactly 'PourEndPoint' for accurate pouring.");
+    }
+
+    // Recursively searches this transform's full hierarchy (not just direct children)
+    // for a child with the exact given name. transform.Find() only checks direct
+    // children, which silently returns null if PourStartPoint/PourEndPoint are
+    // nested a level deeper (e.g. under "Up_Part") — this fixes that.
+    private static Transform FindDeepChild(Transform parent, string name)
+    {
+        foreach (Transform child in parent)
+        {
+            if (child.name == name)
+                return child;
+
+            Transform result = FindDeepChild(child, name);
+            if (result != null)
+                return result;
+        }
+        return null;
     }
 
 public void SetTheme(
@@ -125,6 +235,141 @@ public void SetTheme(
 
             if (UIController.IsBottleTopEnabled) // ✅ ADD THIS
                 stopper.Animate();
+        }
+    }
+
+    private void LateUpdate()
+    {
+        if (isPouringStreamActive)
+        {
+            UpdatePouringStream();
+        }
+    }
+
+    private void UpdatePouringStream()
+    {
+        if (lineRenderer == null || bottleControllerRef == null) return;
+
+        // Determine start point of the pour stream (aligned to the tilted mouth lip)
+        Vector3 startPoint;
+        if (pourStartPoint != null)
+        {
+            startPoint = pourStartPoint.position;
+        }
+        else
+        {
+            float localLipX = (chosenRotationPoint == leftRotationPoint) ? -localLipXOffset : localLipXOffset;
+            startPoint = transform.TransformPoint(new Vector3(localLipX, localLipYOffset, 0f));
+        }
+
+        // Determine end point of the pour stream (where it enters the destination bottle, tracking the rising liquid level)
+        Vector3 endPoint;
+        if (bottleControllerRef.pourEndPoint != null)
+        {
+            endPoint = bottleControllerRef.pourEndPoint.position;
+        }
+        else
+        {
+            float currentFill = (bottleControllerRef.bottleMaskSR != null && bottleControllerRef.bottleMaskSR.material != null && bottleControllerRef.bottleMaskSR.material.HasProperty("_FillAmount")) ? 
+                bottleControllerRef.bottleMaskSR.material.GetFloat("_FillAmount") : 
+                bottleControllerRef.fillAmounts[bottleControllerRef.numberOfColorsInBottle];
+            
+            float maxFillHeight = bottleControllerRef.fallbackMaxFillHeight;
+            if (bottleControllerRef.bottleMaskSR != null && bottleControllerRef.bottleMaskSR.material != null && bottleControllerRef.bottleMaskSR.material.HasProperty("_MaxFillHeight"))
+            {
+                maxFillHeight = bottleControllerRef.bottleMaskSR.material.GetFloat("_MaxFillHeight");
+            }
+            
+            float localSurfaceY = (currentFill * maxFillHeight) + pourEndTargetYOffset;
+            endPoint = bottleControllerRef.transform.TransformPoint(new Vector3(0f, localSurfaceY, 0f));
+        }
+
+        // Ensure LineRenderer uses World Space
+        lineRenderer.useWorldSpace = true;
+        lineRenderer.SetPosition(0, startPoint);
+        lineRenderer.SetPosition(1, endPoint);
+
+        // Calculate dynamic Sorting Order so the stream renders in front of both bottles
+        int sourceOrder = transform.GetComponent<SpriteRenderer>().sortingOrder;
+        int destOrder = bottleControllerRef.transform.GetComponent<SpriteRenderer>().sortingOrder;
+        int highestOrder = Mathf.Max(sourceOrder, destOrder);
+        lineRenderer.sortingOrder = highestOrder + 1;
+
+        // Compensate for parent scale if nested in scaled UI/Canvas
+        Transform lrParent = lineRenderer.transform.parent;
+        if (lrParent != null)
+        {
+            Vector3 parentLossyScale = lrParent.lossyScale;
+            if (parentLossyScale.x != 0 && parentLossyScale.y != 0)
+            {
+                lineRenderer.transform.localScale = new Vector3(1f / parentLossyScale.x, 1f / parentLossyScale.y, 1f / parentLossyScale.z);
+            }
+        }
+
+        // Calculate direction for particle orientation
+        Vector3 direction = (endPoint - startPoint).normalized;
+
+        // Update Particle System position, rotation, simulation space, color, scale, and sorting order
+        if (pourParticles != null)
+        {
+            pourParticles.transform.position = startPoint;
+            if (direction != Vector3.zero)
+            {
+                pourParticles.transform.rotation = Quaternion.LookRotation(direction, Vector3.back);
+            }
+
+            // Compensate parent scale (only if still attached to parent)
+            Transform pParent = pourParticles.transform.parent;
+            if (pParent != null)
+            {
+                Vector3 parentLossyScale = pParent.lossyScale;
+                if (parentLossyScale.x != 0)
+                {
+                    pourParticles.transform.localScale = new Vector3(1f / parentLossyScale.x, 1f / parentLossyScale.y, 1f / parentLossyScale.z);
+                }
+            }
+            else
+            {
+                pourParticles.transform.localScale = Vector3.one;
+            }
+
+            // Set Sorting Order
+            var renderer = pourParticles.GetComponent<ParticleSystemRenderer>();
+            if (renderer != null)
+            {
+                renderer.sortingOrder = highestOrder + 2;
+            }
+        }
+
+        if (splashParticles != null)
+        {
+            splashParticles.transform.position = endPoint;
+            if (direction != Vector3.zero)
+            {
+                splashParticles.transform.rotation = Quaternion.LookRotation(-direction, Vector3.back);
+            }
+
+            // Compensate parent scale (only if still attached to parent)
+            Transform sParent = splashParticles.transform.parent;
+            if (sParent != null)
+            {
+                Vector3 parentLossyScale = sParent.lossyScale;
+                if (parentLossyScale.x != 0)
+                {
+                    splashParticles.transform.localScale = new Vector3(1f / parentLossyScale.x, 1f / parentLossyScale.y, 1f / parentLossyScale.z);
+                }
+            }
+            else
+            {
+                splashParticles.transform.localScale = Vector3.one;
+            }
+
+            // Set Sorting Order
+            var renderer = splashParticles.GetComponent<ParticleSystemRenderer>();
+            if (renderer != null)
+            {
+                renderer.sortingOrder = highestOrder + 2;
+            }
         }
     }
 
@@ -338,29 +583,43 @@ public void SetTheme(
     //método que vai carregar as corres de acordo com a paleta selecionada
     public void LoadColorsPallet()
     {
-        //criando o array de cores
-        for (int x = 0; x < 4; x++)
+        // paletteIndex = the card the player selected (0 = first card, 1 = second card …)
+        int paletteIndex = (GameManager.Instance != null)
+            ? GameManager.Instance.selectedColorPalette
+            : PlayerPrefs.GetInt("SelectedColor", 0);
+
+        Color[] pallet = null;
+
+        // ── Source 1: Get colors directly from the selected card in ThemeSelectionManager
+        ThemeSelectionManager themeMgr = ThemeSelectionManager.Instance != null
+            ? ThemeSelectionManager.Instance
+            : FindObjectOfType<ThemeSelectionManager>();
+
+        if (themeMgr != null)
         {
-            if (GameManager.Instance.selectedColorPalette == 1)//paleta de cor normais
-                bottleColors[x] = normalColorsPallet[colorsIndex[x]];
-
-            else if (GameManager.Instance.selectedColorPalette == 2)//paleta de cor protanopia
-                bottleColors[x] = protanopiaColorsPallet[colorsIndex[x]];
-
-            else if (GameManager.Instance.selectedColorPalette == 3)//paleta de cor tritanopia
-                bottleColors[x] = tritanopiaColorsPallet[colorsIndex[x]];
-
-            else if (GameManager.Instance.selectedColorPalette == 4)//paleta de cor deuteranopia
-                bottleColors[x] = deuteranopiaColorsPallet[colorsIndex[x]];
+            pallet = themeMgr.GetCurrentPaletteColors();
         }
 
-        //enviando as cores para o shader
+        // ── Source 2: Fall back to this prefab's own colorPalettes list
+        if ((pallet == null || pallet.Length == 0) && colorPalettes != null && colorPalettes.Count > 0)
+        {
+            paletteIndex = Mathf.Clamp(paletteIndex, 0, colorPalettes.Count - 1);
+            pallet = colorPalettes[paletteIndex].colors;
+        }
+
+        if (pallet == null || pallet.Length == 0)
+        {
+            return;
+        }
+
+        for (int x = 0; x < 4; x++)
+        {
+            int slot = Mathf.Clamp(colorsIndex[x], 0, pallet.Length - 1);
+            bottleColors[x] = pallet[slot];
+        }
+
         UpdateColorsOnShader();
-
-        //enviando o fillAmount
         bottleMaskSR.material.SetFloat("_FillAmount", fillAmounts[numberOfColorsInBottle]);
-
-        //refazendo o top color values
         UpdateTopColorValues();
     }
 
@@ -461,7 +720,7 @@ public void SetTheme(
             lerpValue = t / rotationSpeed;
             angleValue = Mathf.Lerp(0f, directionMultiplier * rotationValues[rotationIndex], lerpValue);
 
-           transform.rotation = Quaternion.Euler(0, 0, angleValue);
+            transform.rotation = Quaternion.Euler(0, 0, angleValue);
 
             bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(angleValue));
 
@@ -469,13 +728,17 @@ public void SetTheme(
             {
                 if (!lineRenderer.enabled)
                 {
-                    lineRenderer.startColor = topColor;
-                    lineRenderer.endColor = topColor;
+                    if (lineRenderer != null)
+                    {
+                        lineRenderer.startColor = topColor;
+                        lineRenderer.endColor = topColor;
+                        lineRenderer.enabled = true;
+                    }
+                    isPouringStreamActive = true;
 
-                    lineRenderer.SetPosition(0, chosenRotationPoint.position);
-                    lineRenderer.SetPosition(1, chosenRotationPoint.position - Vector3.up * 1.45f);
+                    PlayPourEffects();
 
-                    lineRenderer.enabled = true;
+                    UpdatePouringStream(); // Force immediate position update on first frame
                 }
 
                 bottleMaskSR.material.SetFloat("_FillAmount", FillAmountCurve.Evaluate(angleValue));
@@ -505,7 +768,13 @@ public void SetTheme(
 
         //bottleControllerRef.numberOfColorsInBottle += numberOfColorsToTransfer;
 
-        lineRenderer.enabled = false;
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = false;
+        }
+        isPouringStreamActive = false;
+
+        StopPourEffects();
 
         bottleControllerRef.UpdateTopColorValues();
 
@@ -521,6 +790,9 @@ public void SetTheme(
 
         float lastAngleValue = directionMultiplier * rotationValues[rotationIndex];
 
+        float startFill = bottleMaskSR.material.GetFloat("_FillAmount");
+        float endFill = fillAmounts[numberOfColorsInBottle];
+
         while (t < timeToRotate)
         {
             lerpValue = t / timeToRotate;
@@ -529,6 +801,7 @@ public void SetTheme(
             transform.rotation = Quaternion.Euler(0, 0, angleValue);
 
             bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(angleValue));
+            bottleMaskSR.material.SetFloat("_FillAmount", Mathf.Lerp(startFill, endFill, lerpValue));
 
             lastAngleValue = angleValue;
 
@@ -543,6 +816,7 @@ public void SetTheme(
         angleValue = 0f;
         transform.eulerAngles = new Vector3(0, 0, angleValue);
         bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(angleValue));
+        bottleMaskSR.material.SetFloat("_FillAmount", endFill);
 
         //correção para que a animação corra por completo
         underAnimation = false;
@@ -555,197 +829,215 @@ public void SetTheme(
             // ✅ CHECK HERE
             if (UIController.IsBottleTopEnabled)
             {
-            if (!bc.SomeBottleIsUnderAnimation())
-            {
-                if (!bottleControllerRef.GetIsBeingFilled())
-                    bottleControllerRef.SetStopperCommand();
-                else
-                    bottleControllerRef.stopper.Animate();
-            }
+                if (!bc.SomeBottleIsUnderAnimation())
+                {
+                    if (!bottleControllerRef.GetIsBeingFilled())
+                        bottleControllerRef.SetStopperCommand();
+                    else
+                        bottleControllerRef.stopper.Animate();
+                }
             }
         }
 
-       StartCoroutine(MoveBottleBack());
-        //StartCoroutine(RotateBackOnly());
+        StartCoroutine(MoveBottleBack());
     }
 
     private void SetupLineRenderer()
-{
-    lineRenderer.startColor = topColor;
-    lineRenderer.endColor = topColor;
+    {
+        if (lineRenderer != null)
+        {
+            lineRenderer.startColor = topColor;
+            lineRenderer.endColor = topColor;
+            lineRenderer.enabled = true;
+        }
+        isPouringStreamActive = true;
 
-    Vector3 start = chosenRotationPoint.position;
-    Vector3 end = bottleControllerRef.transform.position + Vector3.up * pourHeightOffset;
+        PlayPourEffects();
 
-    lineRenderer.SetPosition(0, start);
-    lineRenderer.SetPosition(1, end);
-
-    lineRenderer.enabled = true;
-}
+        UpdatePouringStream(); // Force immediate update
+    }
 
     private IEnumerator RotateBackOnly()
-{
-    float t = 0;
-    float startAngle = directionMultiplier * rotationValues[rotationIndex];
-
-    while (t < moveAnimationTime)
     {
-        float angle = Mathf.Lerp(startAngle, 0f, t / moveAnimationTime);
+        float t = 0;
+        float startAngle = directionMultiplier * rotationValues[rotationIndex];
 
-      //  transform.eulerAngles = new Vector3(0, 0, angle);
-
-        t += Time.deltaTime;
-        yield return null;
-    }
-
-    transform.eulerAngles = Vector3.zero;
-}
-
-    //animação que vai mover o recipiente para proximo do outro recipiente
-  private IEnumerator MoveBottle()
-{
-    if (GameController.Instance != null && GameController.Instance.shouldGamePause)
-        yield break;
-
-    underAnimation = true;
-
-    startPosition = transform.position;
-
-    Vector3 targetPos = bottleControllerRef.transform.position;
-
-    float xOffset = 0.5f;   // tweak this value
-    float yOffset = 0.8f;   // tweak this for height
-
-    if (transform.position.x > targetPos.x)
-        endPosition = targetPos + new Vector3(xOffset, yOffset, 0);
-    else
-        endPosition = targetPos + new Vector3(-xOffset, yOffset, 0);
-
-    float t = 0;
-
-    float startAngle = 0f;
-    float endAngle = directionMultiplier * rotationValues[rotationIndex];
-   float lastAngle = 0f;
-
-    while (t <= moveAnimationTime)
-    {
-        float progress = t / moveAnimationTime;
-
-        // MOVE
-        transform.position = Vector3.Lerp(startPosition, endPosition, progress);
-
-        // ✅ ROTATE AROUND (FIXED)
-        float angle = Mathf.Lerp(startAngle, endAngle, progress);
-        float delta = angle - lastAngle;
-
-        transform.rotation = Quaternion.Euler(0, 0, angle);
-
-        lastAngle = angle;
-
-        
-
-        t += Time.deltaTime;
-        yield return null;
-    }
-
-    transform.position = endPosition;
-
-    GameController.Instance.AddMove();
-
-    StartCoroutine(ContinuePour());
-}
-
-   private IEnumerator ContinuePour()
-{
-    float t = 0;
-    float duration = timeToRotate;
-
-    float fixedAngle = directionMultiplier * rotationValues[rotationIndex];
-    float lastFill = FillAmountCurve.Evaluate(fixedAngle);
-
-    while (t < duration)
-    {
-        float currentFill = FillAmountCurve.Evaluate(fixedAngle);
-
-        if (fillAmounts[numberOfColorsInBottle] > currentFill + 0.005f)
+        while (t < moveAnimationTime)
         {
-            if (!lineRenderer.enabled)
-            {
-                lineRenderer.startColor = topColor;
-                lineRenderer.endColor = topColor;
-
-                lineRenderer.SetPosition(0, chosenRotationPoint.position);
-                lineRenderer.SetPosition(1, chosenRotationPoint.position - Vector3.up * 1.45f);
-
-                lineRenderer.enabled = true;
-            }
-
-            float delta = lastFill - currentFill;
-
-            bottleMaskSR.material.SetFloat("_FillAmount", currentFill);
-            bottleControllerRef.FillUp(delta);
-
-            lastFill = currentFill;
+            float angle = Mathf.Lerp(startAngle, 0f, t / moveAnimationTime);
+            t += Time.deltaTime;
+            yield return null;
         }
 
-        t += Time.deltaTime;
-        yield return null;
+        transform.eulerAngles = Vector3.zero;
     }
 
-    lineRenderer.enabled = false;
-
-    numberOfColorsInBottle -= numberOfColorsToTransfer;
-    bottleControllerRef.AdjustFillAmount(newNumberOfColorsInOtherBottle);
-
-    bottleControllerRef.UpdateTopColorValues();
-
-    StartCoroutine(MoveBackWithRotate());
-}
-
-private IEnumerator MoveBackWithRotate()
-{
-    startPosition = transform.position;
-    endPosition = originalPosition;
-
-    float t = 0;
-
-    float startAngle = directionMultiplier * rotationValues[rotationIndex];
-    float endAngle = 0f;
-
-    float lastAngle = startAngle;
-
-    while (t <= moveAnimationTime)
+    //animação que vai mover o recipiente para proximo do outro recipiente
+    private IEnumerator MoveBottle()
     {
-        float progress = t / moveAnimationTime;
+        if (GameController.Instance != null && GameController.Instance.shouldGamePause)
+            yield break;
 
-        // MOVE BACK
-        transform.position = Vector3.Lerp(startPosition, endPosition, progress);
+        underAnimation = true;
 
-        // FIXED ROTATION
-        float angle = Mathf.Lerp(startAngle, endAngle, progress);
-        float delta = angle - lastAngle;
+        startPosition = transform.position;
 
-       transform.rotation = Quaternion.Euler(0, 0, angle);
+        Vector3 targetPos = bottleControllerRef.transform.position;
 
-        lastAngle = angle;
+        float xOffset = 0.5f;   // tweak this value
+        float yOffset = 0.8f;   // tweak this for height
 
-        t += Time.deltaTime;
-        yield return null;
+        if (transform.position.x > targetPos.x)
+            endPosition = targetPos + new Vector3(xOffset, yOffset, 0);
+        else
+            endPosition = targetPos + new Vector3(-xOffset, yOffset, 0);
+
+        float t = 0;
+
+        float startAngle = 0f;
+        float endAngle = directionMultiplier * rotationValues[rotationIndex];
+
+        while (t <= moveAnimationTime)
+        {
+            float progress = t / moveAnimationTime;
+
+            // MOVE
+            transform.position = Vector3.Lerp(startPosition, endPosition, progress);
+
+            // ROTATE
+            float angle = Mathf.Lerp(startAngle, endAngle, progress);
+            transform.rotation = Quaternion.Euler(0, 0, angle);
+
+            // Keep liquid horizontal as it tilts
+            bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(angle));
+            bottleMaskSR.material.SetFloat("_FillAmount", FillAmountCurve.Evaluate(angle));
+
+            t += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = endPosition;
+        transform.rotation = Quaternion.Euler(0, 0, endAngle);
+        bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(endAngle));
+        bottleMaskSR.material.SetFloat("_FillAmount", FillAmountCurve.Evaluate(endAngle));
+
+        GameController.Instance.AddMove();
+
+        StartCoroutine(ContinuePour());
     }
 
-    transform.position = endPosition;
+    private IEnumerator ContinuePour()
+    {
+        float t = 0;
+        float duration = timeToRotate;
 
-    // Reset clean
-    transform.eulerAngles = Vector3.zero;
+        float sourceStartFill = fillAmounts[numberOfColorsInBottle];
+        float sourceEndFill = fillAmounts[numberOfColorsInBottle - numberOfColorsToTransfer];
 
-    transform.GetComponent<SpriteRenderer>().sortingOrder -= 2;
-    bottleMaskSR.sortingOrder -= 2;
+        float destStartFill = fillAmounts[newNumberOfColorsInOtherBottle - numberOfColorsToTransfer];
+        float destEndFill = fillAmounts[newNumberOfColorsInOtherBottle];
 
-    isFilling = false;
-    bottleControllerRef.SetIsBeingFilled(false);
+        // Enable the pouring stream and particles
+        if (lineRenderer != null)
+        {
+            lineRenderer.startColor = topColor;
+            lineRenderer.endColor = topColor;
+            lineRenderer.enabled = true;
+        }
+        isPouringStreamActive = true;
 
-    underAnimation = false;
-}
+        PlayPourEffects();
+
+        UpdatePouringStream(); // Force immediate position update on first frame
+
+        while (t < duration)
+        {
+            float progress = t / duration;
+
+            // Smoothly interpolate fill amounts
+            float currentSourceFill = Mathf.Lerp(sourceStartFill, sourceEndFill, progress);
+            float currentDestFill = Mathf.Lerp(destStartFill, destEndFill, progress);
+
+            bottleMaskSR.material.SetFloat("_FillAmount", currentSourceFill);
+            if (bottleControllerRef != null && bottleControllerRef.bottleMaskSR != null)
+            {
+                bottleControllerRef.bottleMaskSR.material.SetFloat("_FillAmount", currentDestFill);
+            }
+
+            t += Time.deltaTime;
+            yield return null;
+        }
+
+        // Set final exact values
+        bottleMaskSR.material.SetFloat("_FillAmount", sourceEndFill);
+        if (bottleControllerRef != null && bottleControllerRef.bottleMaskSR != null)
+        {
+            bottleControllerRef.bottleMaskSR.material.SetFloat("_FillAmount", destEndFill);
+        }
+
+        // Disable stream and particles
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = false;
+        }
+        isPouringStreamActive = false;
+
+        StopPourEffects();
+
+        numberOfColorsInBottle -= numberOfColorsToTransfer;
+        bottleControllerRef.AdjustFillAmount(newNumberOfColorsInOtherBottle);
+
+        bottleControllerRef.UpdateTopColorValues();
+
+        StartCoroutine(MoveBackWithRotate());
+    }
+
+    private IEnumerator MoveBackWithRotate()
+    {
+        startPosition = transform.position;
+        endPosition = originalPosition;
+
+        float t = 0;
+
+        float startAngle = directionMultiplier * rotationValues[rotationIndex];
+        float endAngle = 0f;
+
+        float startFill = bottleMaskSR.material.GetFloat("_FillAmount");
+        float endFill = fillAmounts[numberOfColorsInBottle];
+
+        while (t <= moveAnimationTime)
+        {
+            float progress = t / moveAnimationTime;
+
+            // MOVE BACK
+            transform.position = Vector3.Lerp(startPosition, endPosition, progress);
+
+            // ROTATE BACK
+            float angle = Mathf.Lerp(startAngle, endAngle, progress);
+            transform.rotation = Quaternion.Euler(0, 0, angle);
+
+            bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(angle));
+            bottleMaskSR.material.SetFloat("_FillAmount", Mathf.Lerp(startFill, endFill, progress));
+
+            t += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = endPosition;
+
+        // Reset clean
+        transform.eulerAngles = Vector3.zero;
+        bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(0f));
+        bottleMaskSR.material.SetFloat("_FillAmount", endFill);
+
+        transform.GetComponent<SpriteRenderer>().sortingOrder -= 2;
+        bottleMaskSR.sortingOrder -= 2;
+
+        isFilling = false;
+        bottleControllerRef.SetIsBeingFilled(false);
+
+        underAnimation = false;
+    }
 
     //animação que vai mover o recipiente de volta para o lugar
     private IEnumerator MoveBottleBack()
@@ -798,10 +1090,41 @@ private IEnumerator MoveBackWithRotate()
         }
 
         transform.position = finalPosition;
+    }
 
-        //bottlesController.SetPermissionToSpawnBottles(true);
+    private void OnDisable()
+    {
+        // Re-parent particles if they were left detached
+        if (pourParticles != null && pourParticlesOriginalParent != null && pourParticles.transform.parent == null)
+        {
+            pourParticles.transform.SetParent(pourParticlesOriginalParent);
+        }
+        if (splashParticles != null && splashParticlesOriginalParent != null && splashParticles.transform.parent == null)
+        {
+            splashParticles.transform.SetParent(splashParticlesOriginalParent);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Destroy detached particles to avoid leaks if bottle is destroyed
+        if (pourParticles != null && pourParticlesOriginalParent != null && pourParticles.transform.parent == null)
+        {
+            Destroy(pourParticles.gameObject);
+        }
+        if (splashParticles != null && splashParticlesOriginalParent != null && splashParticles.transform.parent == null)
+        {
+            Destroy(splashParticles.gameObject);
+        }
     }
 }
+ 
+/*
+*   -Alterar as variáveis que podem ser privadas para privado
+*   -criar métodos set e get necessários
+*   -usar o método MoveAnimation ao invés dos métodos atuais para mover o recipiente
+*   -Otimizações gerais
+*/
 
 /*
 *   -Alterar as variáveis que podem ser privadas para privado

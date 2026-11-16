@@ -101,10 +101,9 @@ public class GameManager : MonoBehaviour
         //carregando o level
         level = PlayerPrefs.GetInt("level");
 
-        //carregando a paleta de cores selecionada
-        selectedColorPalette = PlayerPrefs.GetInt("selectedColorPalette");
-        if (selectedColorPalette == 0)
-            selectedColorPalette = 1;
+        // selectedColorPalette is 0-based: 0=Normal, 1=Protanopia, 2=Tritanopia, 3=Deuteranopia
+        // Default = 0 (first / normal palette)
+        selectedColorPalette = PlayerPrefs.GetInt("selectedColorPalette", 0);
 
         //carregando a imagem de fundo selecionada
         backgroundimage = PlayerPrefs.GetInt("backgroundimage");
