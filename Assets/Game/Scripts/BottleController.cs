@@ -824,18 +824,13 @@ public void SetTheme(
         //verificando se o outro recipiente está cheio
         if (bottleControllerRef.CheckIfItsDone())
         {
+            UIController.Vibrate();
             bc.VerifyVictory();
 
             // ✅ CHECK HERE
-            if (UIController.IsBottleTopEnabled)
+            if (UIController.IsBottleTopEnabled && bottleControllerRef.stopper != null)
             {
-                if (!bc.SomeBottleIsUnderAnimation())
-                {
-                    if (!bottleControllerRef.GetIsBeingFilled())
-                        bottleControllerRef.SetStopperCommand();
-                    else
-                        bottleControllerRef.stopper.Animate();
-                }
+                bottleControllerRef.stopper.Animate();
             }
         }
 
@@ -1033,10 +1028,23 @@ public void SetTheme(
         transform.GetComponent<SpriteRenderer>().sortingOrder -= 2;
         bottleMaskSR.sortingOrder -= 2;
 
+        UpdateTopColorValues();
+
         isFilling = false;
         bottleControllerRef.SetIsBeingFilled(false);
 
         underAnimation = false;
+
+        if (bottleControllerRef.CheckIfItsDone())
+        {
+            UIController.Vibrate();
+            bc.VerifyVictory();
+
+            if (UIController.IsBottleTopEnabled && bottleControllerRef.stopper != null)
+            {
+                bottleControllerRef.stopper.Animate();
+            }
+        }
     }
 
     //animação que vai mover o recipiente de volta para o lugar
