@@ -78,8 +78,9 @@ public class BottleController : MonoBehaviour
     [SerializeField] private ParticleSystem splashParticles;
     private bool isPouringStreamActive = false;
 
-    [SerializeField] private float localLipXOffset = 0.12f;
-    [SerializeField] private float localLipYOffset = 0.72f;
+    [SerializeField] private float localLipXOffset = 0.11f;
+    [SerializeField] private float localLipYOffset = 0.48f;
+    [SerializeField] private float pourMouthYOffset = 0.68f;
     [SerializeField] private float pourEndTargetYOffset = 0.0f;
 
     // Fallback used only when a bottle has no pourEndPoint child assigned/found.
@@ -246,21 +247,41 @@ public void SetTheme(
         }
     }
 
+    private Vector3 GetLocalPourStartOffset()
+    {
+        if (pourStartPoint != null)
+        {
+            return transform.InverseTransformPoint(pourStartPoint.position);
+        }
+
+        float lipX = localLipXOffset;
+        float lipY = localLipYOffset;
+
+        SpriteRenderer refSR = (bottleFillRenderer != null && bottleFillRenderer.sprite != null)
+            ? bottleFillRenderer
+            : bottleUpRenderer;
+
+        if (refSR != null && refSR.sprite != null)
+        {
+            Bounds b = refSR.sprite.bounds;
+            Vector3 localScale = refSR.transform.localScale;
+            Vector3 localPos = refSR.transform.localPosition;
+            lipY = localPos.y + (b.max.y * localScale.y * 0.96f);
+            lipX = localPos.x + (b.max.x * localScale.x * 0.72f);
+        }
+
+        float signedLipX = (chosenRotationPoint == leftRotationPoint) ? -lipX : lipX;
+        return new Vector3(signedLipX, lipY, 0f);
+    }
+
     private void UpdatePouringStream()
     {
         if (lineRenderer == null || bottleControllerRef == null) return;
 
         // Determine start point of the pour stream (aligned to the tilted mouth lip)
-        Vector3 startPoint;
-        if (pourStartPoint != null)
-        {
-            startPoint = pourStartPoint.position;
-        }
-        else
-        {
-            float localLipX = (chosenRotationPoint == leftRotationPoint) ? -localLipXOffset : localLipXOffset;
-            startPoint = transform.TransformPoint(new Vector3(localLipX, localLipYOffset, 0f));
-        }
+        Vector3 startPoint = (pourStartPoint != null)
+            ? pourStartPoint.position
+            : transform.TransformPoint(GetLocalPourStartOffset());
 
         // Determine end point of the pour stream (where it enters the destination bottle, tracking the rising liquid level)
         Vector3 endPoint;
@@ -283,6 +304,10 @@ public void SetTheme(
             float localSurfaceY = (currentFill * maxFillHeight) + pourEndTargetYOffset;
             endPoint = bottleControllerRef.transform.TransformPoint(new Vector3(0f, localSurfaceY, 0f));
         }
+
+        // Keep the falling stream vertical from the pouring lip into the target bottle
+        endPoint.x = startPoint.x;
+        endPoint.z = startPoint.z;
 
         // Ensure LineRenderer uses World Space
         lineRenderer.useWorldSpace = true;
@@ -315,7 +340,8 @@ public void SetTheme(
             pourParticles.transform.position = startPoint;
             if (direction != Vector3.zero)
             {
-                pourParticles.transform.rotation = Quaternion.LookRotation(direction, Vector3.back);
+                // Keep the particle system flat in the 2D XY plane with local -Y pointing along the pour stream
+                pourParticles.transform.rotation = Quaternion.FromToRotation(Vector3.down, direction);
             }
 
             // Compensate parent scale (only if still attached to parent)
@@ -344,10 +370,7 @@ public void SetTheme(
         if (splashParticles != null)
         {
             splashParticles.transform.position = endPoint;
-            if (direction != Vector3.zero)
-            {
-                splashParticles.transform.rotation = Quaternion.LookRotation(-direction, Vector3.back);
-            }
+            splashParticles.transform.rotation = Quaternion.identity;
 
             // Compensate parent scale (only if still attached to parent)
             Transform sParent = splashParticles.transform.parent;
@@ -879,18 +902,16 @@ public void SetTheme(
 
         Vector3 targetPos = bottleControllerRef.transform.position;
 
-        float xOffset = 0.5f;   // tweak this value
-        float yOffset = 0.8f;   // tweak this for height
-
-        if (transform.position.x > targetPos.x)
-            endPosition = targetPos + new Vector3(xOffset, yOffset, 0);
-        else
-            endPosition = targetPos + new Vector3(-xOffset, yOffset, 0);
-
-        float t = 0;
-
         float startAngle = 0f;
         float endAngle = directionMultiplier * rotationValues[rotationIndex];
+
+        // Position the bottle so its tilted pouring lip lands directly above the target bottle's center
+        Vector3 localLip = GetLocalPourStartOffset();
+        Vector3 rotatedLipWorld = Vector3.Scale(Quaternion.Euler(0, 0, endAngle) * localLip, transform.lossyScale);
+        Vector3 desiredLipWorldPos = targetPos + new Vector3(0f, pourMouthYOffset, 0f);
+        endPosition = desiredLipWorldPos - rotatedLipWorld;
+
+        float t = 0;
 
         while (t <= moveAnimationTime)
         {
