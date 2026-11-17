@@ -59,6 +59,7 @@ public class UIController : MonoBehaviour
         isBottleTopOn = PlayerPrefs.GetInt("BottleTop", 1) == 1;
 
         WireButtons();
+        WireNotificationPopup();
         WireFeedbackPopup();
         WireAboutPopup();
         ApplyAudioState();
@@ -303,15 +304,55 @@ public class UIController : MonoBehaviour
             Vibrate();
     }
 
+    private void WireNotificationPopup()
+    {
+        if (notificationCanvas == null) return;
+
+        foreach (Button btn in notificationCanvas.GetComponentsInChildren<Button>(true))
+        {
+            TextMeshProUGUI label = btn.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label != null && label.text.IndexOf("Turn On", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                if (btn.onClick.GetPersistentEventCount() == 0)
+                {
+                    btn.onClick.RemoveListener(OnEnableNotificationsConfirm);
+                    btn.onClick.AddListener(OnEnableNotificationsConfirm);
+                }
+                break;
+            }
+        }
+    }
+
     public void OnNotificationClick()
     {
-        isNotificationOn = !isNotificationOn;
-        PlayerPrefs.SetInt("Notification", isNotificationOn ? 1 : 0);
+        if (!isNotificationOn)
+        {
+            CloseAllPopups();
+            if (notificationCanvas != null)
+            {
+                notificationCanvas.SetActive(true);
+            }
+            else
+            {
+                OnEnableNotificationsConfirm();
+            }
+            return;
+        }
+
+        isNotificationOn = false;
+        PlayerPrefs.SetInt("Notification", 0);
+        PlayerPrefs.Save();
+        UpdateUI();
+    }
+
+    public void OnEnableNotificationsConfirm()
+    {
+        isNotificationOn = true;
+        PlayerPrefs.SetInt("Notification", 1);
         PlayerPrefs.Save();
 
-        CloseAllPopups();
         if (notificationCanvas != null)
-            notificationCanvas.SetActive(true);
+            notificationCanvas.SetActive(false);
 
         UpdateUI();
     }
