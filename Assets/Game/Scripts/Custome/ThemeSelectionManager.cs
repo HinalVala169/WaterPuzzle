@@ -1,6 +1,8 @@
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
 
 public class ThemeSelectionManager : MonoBehaviour
 {
@@ -53,6 +55,28 @@ public class ThemeSelectionManager : MonoBehaviour
     [Header("References")]
     [SerializeField] private BottlesController bottlesController;
 
+    [Header("Economy & Unlock Settings")]
+    [SerializeField] private TextMeshProUGUI coinsText;
+    [SerializeField] private Button watchAdCoinsButton;
+    [SerializeField] private Button removeAdsButton;
+    [SerializeField] private int adCoinReward = 2000;
+    [SerializeField] private int defaultCoinCost = 500;
+    [SerializeField] private int freeItemsPerCategory = 2;
+    [SerializeField] private int bottleLevelUnlockIndex = 2;
+    [SerializeField] private int bottleRequiredLevel = 30;
+    [SerializeField] private int bgLevelUnlockIndex = 2;
+    [SerializeField] private int bgRequiredLevel = 15;
+
+    [Header("Theme UI Assets (Auto-loaded if empty)")]
+    [SerializeField] private Sprite lockIconSprite;
+    [SerializeField] private Sprite coinPillSprite;
+    [SerializeField] private Sprite coinIconSprite;
+    [SerializeField] private Sprite headerCoinPanelSprite;
+    [SerializeField] private TMP_FontAsset lockFont;
+
+    private Coroutine adButtonPulseRoutine;
+    private readonly Dictionary<ThemeCategory, HashSet<int>> freeIndicesByCategory = new Dictionary<ThemeCategory, HashSet<int>>();
+
     // Tracks current selections
     private int currentBGIndex     = -1;
     private int currentBottleIndex = -1;
@@ -81,8 +105,23 @@ public class ThemeSelectionManager : MonoBehaviour
         if (bottlesController == null)
             bottlesController = FindObjectOfType<BottlesController>();
 
+        CoinManager.OnCoinsChanged += UpdateCoinsUI;
+        AdManager.OnNoAdsChanged += UpdateRemoveAdsButton;
+
+        WireEconomyButtons();
+        EnsureThemeVisualAssets();
+        UpdateCoinsUI(CoinManager.Coins);
+        UpdateRemoveAdsButton();
+        RefreshAllLockStates();
+
         // Restore saved selections
         SetDefaultSelections();
+    }
+
+    private void OnDestroy()
+    {
+        CoinManager.OnCoinsChanged -= UpdateCoinsUI;
+        AdManager.OnNoAdsChanged -= UpdateRemoveAdsButton;
     }
 
     // Ensures colorItems indices and colorPaletteCards are populated before any bottle spawns
@@ -293,6 +332,8 @@ public class ThemeSelectionManager : MonoBehaviour
     {
         if (bgItems == null || bgItems.Count == 0 || bgSprites == null || bgSprites.Count == 0) return;
         int idx = Mathf.Clamp(PlayerPrefs.GetInt("SelectedBG", 0), 0, Mathf.Min(bgItems.Count, bgSprites.Count) - 1);
+        if (!IsItemUnlocked(ThemeCategory.Background, idx))
+            idx = GetFirstUnlockedIndex(ThemeCategory.Background, bgItems.Count);
         foreach (var item in bgItems) item.SetSelected(false);
         currentBGIndex = -1;
         ApplyBG(idx, bgItems[idx]);
@@ -302,6 +343,8 @@ public class ThemeSelectionManager : MonoBehaviour
     {
         if (bottleItems == null || bottleItems.Count == 0) return;
         int idx = Mathf.Clamp(PlayerPrefs.GetInt("SelectedBottle", 0), 0, bottleItems.Count - 1);
+        if (!IsItemUnlocked(ThemeCategory.Bottle, idx))
+            idx = GetFirstUnlockedIndex(ThemeCategory.Bottle, bottleItems.Count);
         foreach (var item in bottleItems) item.SetSelected(false);
         currentBottleIndex = -1;
         ApplyBottle(idx, bottleItems[idx]);
@@ -311,20 +354,353 @@ public class ThemeSelectionManager : MonoBehaviour
     {
         if (colorItems == null || colorItems.Count == 0) return;
         int idx = Mathf.Clamp(PlayerPrefs.GetInt("SelectedColor", 0), 0, colorItems.Count - 1);
+        if (!IsItemUnlocked(ThemeCategory.Color, idx))
+            idx = GetFirstUnlockedIndex(ThemeCategory.Color, colorItems.Count);
         foreach (var item in colorItems) item.SetSelected(false);
         // Force apply on startup
         ApplyColorPalette(idx, colorItems[idx], forceApply: true);
     }
 
+    private int GetFirstUnlockedIndex(ThemeCategory category, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            if (IsItemUnlocked(category, i))
+                return i;
+        }
+        return 0;
+    }
+
     // ── Public entry point called by ThemeItemUI.OnClick() ──────────────────────
     public void SelectItem(ThemeCategory category, int index, ThemeItemUI selectedItem)
     {
+        if (!IsItemUnlocked(category, index))
+        {
+            GetUnlockRequirement(category, index, out bool isLevelLocked, out int value);
+
+            if (isLevelLocked)
+            {
+                if (selectedItem != null) selectedItem.PlayShakeAnimation();
+                return;
+            }
+
+            if (CoinManager.TrySpendCoins(value))
+            {
+                UnlockItem(category, index);
+                RefreshAllLockStates();
+                if (selectedItem != null) selectedItem.PlayUnlockPopAnimation();
+            }
+            else
+            {
+                if (selectedItem != null) selectedItem.PlayShakeAnimation();
+                PulseWatchAdButton();
+                return;
+            }
+        }
+
         switch (category)
         {
             case ThemeCategory.Background: ApplyBG(index, selectedItem);                        break;
             case ThemeCategory.Bottle:     ApplyBottle(index, selectedItem);                    break;
-            case ThemeCategory.Color:      ApplyColorPalette(index, selectedItem, false); break;
+            case ThemeCategory.Color:      ApplyColorPalette(index, selectedItem, false);       break;
         }
+    }
+
+    // ── Economy & Lock Helpers ───────────────────────────────────────────────────
+    private void WireEconomyButtons()
+    {
+        if (watchAdCoinsButton == null)
+        {
+            foreach (Button btn in GetComponentsInChildren<Button>(true))
+            {
+                if (btn.gameObject.name.Contains("ADBTN"))
+                {
+                    watchAdCoinsButton = btn;
+                    break;
+                }
+            }
+        }
+
+        if (removeAdsButton == null)
+        {
+            foreach (Button btn in GetComponentsInChildren<Button>(true))
+            {
+                if (btn.gameObject.name.IndexOf("RemoveAd", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    removeAdsButton = btn;
+                    break;
+                }
+            }
+        }
+
+        if (coinsText == null)
+            CreateRuntimeCoinsBadge();
+
+        if (watchAdCoinsButton != null && watchAdCoinsButton.onClick.GetPersistentEventCount() == 0)
+        {
+            watchAdCoinsButton.onClick.RemoveListener(OnWatchAdForCoinsClick);
+            watchAdCoinsButton.onClick.AddListener(OnWatchAdForCoinsClick);
+        }
+
+        if (removeAdsButton != null && removeAdsButton.onClick.GetPersistentEventCount() == 0)
+        {
+            removeAdsButton.onClick.RemoveListener(OnRemoveAdsClick);
+            removeAdsButton.onClick.AddListener(OnRemoveAdsClick);
+        }
+    }
+
+    public void OnWatchAdForCoinsClick()
+    {
+        AdManager.ShowRewardedAd(() => CoinManager.AddCoins(adCoinReward));
+    }
+
+    public void OnRemoveAdsClick()
+    {
+        UIController ui = FindObjectOfType<UIController>();
+        if (ui != null)
+            ui.OnRemoveAdsClick();
+    }
+
+    private void EnsureThemeVisualAssets()
+    {
+        if (lockIconSprite == null) lockIconSprite = Resources.Load<Sprite>("ThemeUI/Lock");
+        if (coinPillSprite == null) coinPillSprite = Resources.Load<Sprite>("ThemeUI/Coin_Box");
+        if (coinIconSprite == null) coinIconSprite = Resources.Load<Sprite>("ThemeUI/Coin");
+        if (headerCoinPanelSprite == null) headerCoinPanelSprite = Resources.Load<Sprite>("ThemeUI/Coin_Panel");
+
+        if (lockFont == null)
+        {
+            foreach (TextMeshProUGUI tmp in GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (tmp.font != null && tmp.font.name.IndexOf("Freude", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    lockFont = tmp.font;
+                    break;
+                }
+            }
+            if (lockFont == null)
+            {
+                TextMeshProUGUI anyTmp = GetComponentInChildren<TextMeshProUGUI>(true);
+                if (anyTmp != null) lockFont = anyTmp.font;
+            }
+        }
+    }
+
+    private void CreateRuntimeCoinsBadge()
+    {
+        EnsureThemeVisualAssets();
+
+        GameObject badge = new GameObject("RuntimeCoinsBadge", typeof(RectTransform), typeof(Image));
+        badge.transform.SetParent(transform, false);
+        RectTransform rt = badge.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(1f, 1f);
+        rt.anchorMax = new Vector2(1f, 1f);
+        rt.pivot = new Vector2(1f, 1f);
+        rt.anchoredPosition = new Vector2(-28f, -24f);
+        rt.sizeDelta = new Vector2(220f, 68f);
+
+        Image bgImg = badge.GetComponent<Image>();
+        if (headerCoinPanelSprite != null)
+        {
+            bgImg.sprite = headerCoinPanelSprite;
+            bgImg.color = Color.white;
+            bgImg.type = Image.Type.Sliced;
+        }
+        else
+        {
+            bgImg.color = new Color(0.05f, 0.10f, 0.28f, 0.88f);
+        }
+
+        if (coinIconSprite != null)
+        {
+            GameObject iconObj = new GameObject("CoinIcon", typeof(RectTransform), typeof(Image));
+            iconObj.transform.SetParent(badge.transform, false);
+            RectTransform iconRt = iconObj.GetComponent<RectTransform>();
+            iconRt.anchorMin = new Vector2(0.05f, 0.12f);
+            iconRt.anchorMax = new Vector2(0.32f, 0.88f);
+            iconRt.offsetMin = Vector2.zero;
+            iconRt.offsetMax = Vector2.zero;
+            Image cImg = iconObj.GetComponent<Image>();
+            cImg.sprite = coinIconSprite;
+            cImg.preserveAspect = true;
+            cImg.raycastTarget = false;
+        }
+
+        GameObject txtObj = new GameObject("CoinsText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        txtObj.transform.SetParent(badge.transform, false);
+        RectTransform txtRt = txtObj.GetComponent<RectTransform>();
+        txtRt.anchorMin = coinIconSprite != null ? new Vector2(0.32f, 0f) : Vector2.zero;
+        txtRt.anchorMax = Vector2.one;
+        txtRt.offsetMin = new Vector2(6f, 0f);
+        txtRt.offsetMax = new Vector2(-14f, 0f);
+        coinsText = txtObj.GetComponent<TextMeshProUGUI>();
+        if (lockFont != null) coinsText.font = lockFont;
+        coinsText.fontSize = 34;
+        coinsText.fontStyle = FontStyles.Bold;
+        coinsText.color = Color.white;
+        coinsText.alignment = TextAlignmentOptions.Center;
+    }
+
+    private void UpdateCoinsUI(int currentCoins)
+    {
+        if (coinsText != null)
+            coinsText.text = currentCoins.ToString();
+    }
+
+    private void UpdateRemoveAdsButton()
+    {
+        if (removeAdsButton != null)
+            removeAdsButton.gameObject.SetActive(!AdManager.IsNoAdsPurchased);
+    }
+
+    public bool IsItemUnlocked(ThemeCategory category, int index)
+    {
+        if (IsFreeIndex(category, index))
+            return true;
+
+        GetUnlockRequirement(category, index, out bool isLevelLocked, out int value);
+        if (isLevelLocked)
+        {
+            int playerDisplayLevel = GameManager.Instance != null ? GameManager.Instance.level + 1 : 1;
+            return playerDisplayLevel >= value;
+        }
+
+        return PlayerPrefs.GetInt(GetUnlockKey(category, index), 0) == 1;
+    }
+
+    private void GetUnlockRequirement(ThemeCategory category, int index, out bool isLevelLocked, out int value)
+    {
+        if (category == ThemeCategory.Bottle && index == bottleLevelUnlockIndex)
+        {
+            isLevelLocked = true;
+            value = bottleRequiredLevel;
+            return;
+        }
+
+        if (category == ThemeCategory.Background && index == bgLevelUnlockIndex)
+        {
+            isLevelLocked = true;
+            value = bgRequiredLevel;
+            return;
+        }
+
+        isLevelLocked = false;
+        value = defaultCoinCost;
+    }
+
+    private static void UnlockItem(ThemeCategory category, int index)
+    {
+        PlayerPrefs.SetInt(GetUnlockKey(category, index), 1);
+        PlayerPrefs.Save();
+    }
+
+    private static string GetUnlockKey(ThemeCategory category, int index)
+    {
+        return $"Unlocked_{category}_{index}";
+    }
+
+    private bool IsFreeIndex(ThemeCategory category, int index)
+    {
+        if (!freeIndicesByCategory.TryGetValue(category, out HashSet<int> freeSet))
+        {
+            freeSet = ComputeVisualTopRowFreeIndices(GetItemsForCategory(category));
+            freeIndicesByCategory[category] = freeSet;
+        }
+        return freeSet.Contains(index);
+    }
+
+    private List<ThemeItemUI> GetItemsForCategory(ThemeCategory category)
+    {
+        switch (category)
+        {
+            case ThemeCategory.Background: return bgItems;
+            case ThemeCategory.Bottle: return bottleItems;
+            case ThemeCategory.Color: return colorItems;
+            default: return null;
+        }
+    }
+
+    private HashSet<int> ComputeVisualTopRowFreeIndices(List<ThemeItemUI> items)
+    {
+        HashSet<int> freeSet = new HashSet<int>();
+        if (items == null || items.Count == 0) return freeSet;
+
+        RectTransform parentRt = items[0] != null ? items[0].transform.parent as RectTransform : null;
+        if (parentRt != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(parentRt);
+
+        List<(int idx, Vector2 pos)> positioned = new List<(int, Vector2)>(items.Count);
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (items[i] == null) continue;
+            RectTransform rt = items[i].GetComponent<RectTransform>();
+            Vector2 pos = rt != null ? rt.anchoredPosition : Vector2.zero;
+            positioned.Add((i, pos));
+        }
+
+        // Sort top-to-bottom (Y descending), then left-to-right (X ascending)
+        positioned.Sort((a, b) =>
+        {
+            if (Mathf.Abs(a.pos.y - b.pos.y) > 15f)
+                return b.pos.y.CompareTo(a.pos.y);
+            return a.pos.x.CompareTo(b.pos.x);
+        });
+
+        int take = Mathf.Min(freeItemsPerCategory, positioned.Count);
+        for (int i = 0; i < take; i++)
+            freeSet.Add(positioned[i].idx);
+
+        return freeSet;
+    }
+
+    public void RefreshAllLockStates()
+    {
+        freeIndicesByCategory.Clear();
+        RefreshCategoryLockStates(ThemeCategory.Background, bgItems);
+        RefreshCategoryLockStates(ThemeCategory.Bottle, bottleItems);
+        RefreshCategoryLockStates(ThemeCategory.Color, colorItems);
+    }
+
+    private void RefreshCategoryLockStates(ThemeCategory category, List<ThemeItemUI> items)
+    {
+        if (items == null) return;
+        EnsureThemeVisualAssets();
+
+        for (int i = 0; i < items.Count; i++)
+        {
+            if (items[i] == null) continue;
+            bool unlocked = IsItemUnlocked(category, i);
+            GetUnlockRequirement(category, i, out bool isLevelLocked, out int value);
+            items[i].SetLockState(unlocked, isLevelLocked, value, lockIconSprite, coinPillSprite, coinIconSprite, lockFont);
+        }
+    }
+
+    private void PulseWatchAdButton()
+    {
+        if (watchAdCoinsButton == null || !watchAdCoinsButton.gameObject.activeInHierarchy) return;
+
+        if (adButtonPulseRoutine != null)
+            StopCoroutine(adButtonPulseRoutine);
+        adButtonPulseRoutine = StartCoroutine(PulseButtonRoutine(watchAdCoinsButton.transform));
+    }
+
+    private IEnumerator PulseButtonRoutine(Transform target)
+    {
+        Vector3 orig = Vector3.one;
+        float duration = 0.35f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float scale = 1f + Mathf.Sin(t * Mathf.PI * 2f) * 0.1f * (1f - t * 0.5f);
+            target.localScale = orig * scale;
+            yield return null;
+        }
+
+        target.localScale = orig;
+        adButtonPulseRoutine = null;
     }
 
     // ── BACKGROUND ───────────────────────────────────────────────────────────────

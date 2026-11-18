@@ -10,9 +10,53 @@ public class LevelBuilder : MonoBehaviour
 
     void Awake()
     {
-        levelText.text = (GameManager.Instance.level + 1).ToString();
-
+        SetupHeaderLevelText();
         ConfigureLevel();
+    }
+
+    private void SetupHeaderLevelText()
+    {
+        if (levelText == null) return;
+
+        int displayLevel = (GameManager.Instance != null ? GameManager.Instance.level : 0) + 1;
+
+        Transform parent = levelText.transform.parent;
+        if (parent != null && parent.name == "Level")
+        {
+            parent.gameObject.SetActive(true);
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                Transform child = parent.GetChild(i);
+                if (child != levelText.transform)
+                    child.gameObject.SetActive(false);
+            }
+        }
+
+        // Anchor to top-center header between Settings (left) and Theme (right) buttons
+        RectTransform rt = levelText.rectTransform;
+        rt.SetParent(levelText.canvas != null ? levelText.canvas.transform : parent, false);
+        rt.anchorMin = new Vector2(0.5f, 1f);
+        rt.anchorMax = new Vector2(0.5f, 1f);
+        rt.pivot = new Vector2(0.5f, 1f);
+        rt.anchoredPosition = new Vector2(0f, -52f);
+        rt.sizeDelta = new Vector2(420f, 84f);
+
+        // Use Freude SDF if available in scene
+        foreach (TextMeshProUGUI tmp in FindObjectsByType<TextMeshProUGUI>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (tmp.font != null && tmp.font.name.IndexOf("Freude", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                levelText.font = tmp.font;
+                break;
+            }
+        }
+
+        levelText.text = "Level " + displayLevel;
+        levelText.fontSize = 54;
+        levelText.fontStyle = FontStyles.Bold;
+        levelText.color = Color.white;
+        levelText.alignment = TextAlignmentOptions.Center;
+        levelText.raycastTarget = false;
     }
 
     private void ConfigureLevel()

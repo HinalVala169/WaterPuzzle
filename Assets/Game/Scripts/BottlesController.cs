@@ -38,6 +38,7 @@ public class BottlesController : MonoBehaviour
 
     [Header("Victory Delay")]
     [SerializeField] private float winPopupDelay = 1.15f;
+    [SerializeField] private int coinsPerLevelWin = 50;
     private bool victoryTriggered = false;
 
 
@@ -147,6 +148,7 @@ public class BottlesController : MonoBehaviour
     {
         //salvando o level do jogo
         GameManager.Instance.SaveData();
+        CoinManager.AddCoins(coinsPerLevelWin);
 
         GameManager.Instance.gamePause = true;
         StartCoroutine(DelayedShowWinScreen());
