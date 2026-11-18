@@ -53,6 +53,7 @@ public class BottleController : MonoBehaviour
     private Vector3 originalPosition;
     private Vector3 startPosition;
     private Vector3 endPosition;
+    private Coroutine moveCoroutine;
     [SerializeField] private LineRenderer lineRenderer;
 
     private bool isFilling;
@@ -401,6 +402,12 @@ public void SetTheme(
     {
         if (GameController.Instance != null && GameController.Instance.shouldGamePause)
         return; 
+
+        if (moveCoroutine != null)
+        {
+            StopCoroutine(moveCoroutine);
+            moveCoroutine = null;
+        }
         //pegando a quantidade de cores no outro recipiente
         newNumberOfColorsInOtherBottle = bottleControllerRef.numberOfColorsInBottle;
 
@@ -649,13 +656,13 @@ public void SetTheme(
     //método que vai chamar a animação de seleção
     public void Selected()
     {
-        AnimateBottle(new Vector3(transform.position.x, transform.position.y + 0.15f, transform.position.z), 0.25f);
+        AnimateBottle(new Vector3(originalPosition.x, originalPosition.y + 0.15f, originalPosition.z), 0.25f);
     }
 
     //método que vai chamar a animação de des seleção
     public void Unselected()
     {
-        AnimateBottle(new Vector3(transform.position.x, transform.position.y - 0.15f, transform.position.z), 0.25f);
+        AnimateBottle(originalPosition, 0.25f);
     }
 
     //========================================= Sets & Gets =========================================
@@ -1099,7 +1106,10 @@ public void SetTheme(
 
     public void AnimateBottle(Vector3 finalPosition, float duration)
     {
-        StartCoroutine(MoveAnimation(finalPosition, duration));
+        if (moveCoroutine != null)
+            StopCoroutine(moveCoroutine);
+
+        moveCoroutine = StartCoroutine(MoveAnimation(finalPosition, duration));
     }
 
     //animação de movimentação
@@ -1119,6 +1129,7 @@ public void SetTheme(
         }
 
         transform.position = finalPosition;
+        moveCoroutine = null;
     }
 
     private void OnDisable()

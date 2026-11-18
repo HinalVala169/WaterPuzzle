@@ -136,6 +136,8 @@ public class GameController : MonoBehaviour
     public void NextLevel()
     {
         movesText.text = moves.ToString();
+        if (nextLevelScreen.GetComponent<WinScreenAnimation>() == null)
+            nextLevelScreen.AddComponent<WinScreenAnimation>();
         nextLevelScreen.SetActive(true);
     }
 
