@@ -62,6 +62,7 @@ public class UIController : MonoBehaviour
         WireNotificationPopup();
         WireFeedbackPopup();
         WireAboutPopup();
+        WireRemoveAdsPopup();
         ApplyAudioState();
         ApplyBottleTopToCompletedBottles();
         UpdateUI();
@@ -182,6 +183,30 @@ public class UIController : MonoBehaviour
                 break;
             }
         }
+    }
+
+    private void WireRemoveAdsPopup()
+    {
+        if (removeAdCanvas == null) return;
+
+        foreach (Button btn in removeAdCanvas.GetComponentsInChildren<Button>(true))
+        {
+            string n = btn.gameObject.name;
+            if (n.IndexOf("Close", StringComparison.OrdinalIgnoreCase) >= 0) continue;
+
+            if (btn.onClick.GetPersistentEventCount() == 0)
+            {
+                btn.onClick.RemoveListener(OnConfirmRemoveAds);
+                btn.onClick.AddListener(OnConfirmRemoveAds);
+            }
+        }
+    }
+
+    public void OnConfirmRemoveAds()
+    {
+        AdManager.PurchaseNoAds();
+        if (removeAdCanvas != null)
+            removeAdCanvas.SetActive(false);
     }
 
     private void WireAboutPopup()

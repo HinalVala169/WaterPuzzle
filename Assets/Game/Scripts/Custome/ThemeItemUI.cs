@@ -45,7 +45,7 @@ public class ThemeItemUI : MonoBehaviour
     {
         if (cachedDefaults) return;
         cachedDefaults = true;
-        originalScale = transform.localScale;
+        originalScale = transform.localScale.sqrMagnitude > 0.01f ? transform.localScale : Vector3.one;
         RectTransform rt = GetComponent<RectTransform>();
         if (rt != null)
             originalAnchoredPos = rt.anchoredPosition;
@@ -313,9 +313,6 @@ public class ThemeItemUI : MonoBehaviour
 
     private IEnumerator ShakeRoutine()
     {
-        RectTransform rt = GetComponent<RectTransform>();
-        if (rt == null) yield break;
-
         float duration = 0.28f;
         float elapsed = 0f;
 
@@ -323,12 +320,12 @@ public class ThemeItemUI : MonoBehaviour
         {
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
-            float offset = Mathf.Sin(t * Mathf.PI * 5f) * 10f * (1f - t);
-            rt.anchoredPosition = originalAnchoredPos + new Vector2(offset, 0f);
+            float angle = Mathf.Sin(t * Mathf.PI * 5f) * 6f * (1f - t);
+            transform.localRotation = Quaternion.Euler(0f, 0f, angle);
             yield return null;
         }
 
-        rt.anchoredPosition = originalAnchoredPos;
+        transform.localRotation = Quaternion.identity;
         feedbackRoutine = null;
     }
 

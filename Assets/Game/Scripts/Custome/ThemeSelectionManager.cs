@@ -76,6 +76,8 @@ public class ThemeSelectionManager : MonoBehaviour
 
     private Coroutine adButtonPulseRoutine;
     private readonly Dictionary<ThemeCategory, HashSet<int>> freeIndicesByCategory = new Dictionary<ThemeCategory, HashSet<int>>();
+    private readonly List<Button> allWatchAdButtons = new List<Button>();
+    private readonly List<Button> allRemoveAdsButtons = new List<Button>();
 
     // Tracks current selections
     private int currentBGIndex     = -1;
@@ -407,46 +409,82 @@ public class ThemeSelectionManager : MonoBehaviour
     }
 
     // ── Economy & Lock Helpers ───────────────────────────────────────────────────
+    private Transform GetSelectionRoot()
+    {
+        Canvas parentCanvas = GetComponentInParent<Canvas>(true);
+        if (parentCanvas != null)
+            return parentCanvas.rootCanvas != null ? parentCanvas.rootCanvas.transform : parentCanvas.transform;
+        return transform;
+    }
+
     private void WireEconomyButtons()
     {
-        if (watchAdCoinsButton == null)
-        {
-            foreach (Button btn in GetComponentsInChildren<Button>(true))
-            {
-                if (btn.gameObject.name.Contains("ADBTN"))
-                {
-                    watchAdCoinsButton = btn;
-                    break;
-                }
-            }
-        }
+        allWatchAdButtons.Clear();
+        allRemoveAdsButtons.Clear();
 
-        if (removeAdsButton == null)
+        if (watchAdCoinsButton != null)
+            allWatchAdButtons.Add(watchAdCoinsButton);
+        if (removeAdsButton != null)
+            allRemoveAdsButtons.Add(removeAdsButton);
+
+        Transform searchRoot = GetSelectionRoot();
+        foreach (Transform child in searchRoot.GetComponentsInChildren<Transform>(true))
         {
-            foreach (Button btn in GetComponentsInChildren<Button>(true))
+            string childName = child.name;
+            if (childName.IndexOf("ADBTN", System.StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                if (btn.gameObject.name.IndexOf("RemoveAd", System.StringComparison.OrdinalIgnoreCase) >= 0)
-                {
+                Button btn = EnsureButtonComponent(child.gameObject);
+                if (btn != null && !allWatchAdButtons.Contains(btn))
+                    allWatchAdButtons.Add(btn);
+                if (watchAdCoinsButton == null)
+                    watchAdCoinsButton = btn;
+            }
+            else if (childName.IndexOf("RemoveAd", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                Button btn = EnsureButtonComponent(child.gameObject);
+                if (btn != null && !allRemoveAdsButtons.Contains(btn))
+                    allRemoveAdsButtons.Add(btn);
+                if (removeAdsButton == null)
                     removeAdsButton = btn;
-                    break;
-                }
             }
         }
 
         if (coinsText == null)
             CreateRuntimeCoinsBadge();
 
-        if (watchAdCoinsButton != null && watchAdCoinsButton.onClick.GetPersistentEventCount() == 0)
+        foreach (Button btn in allWatchAdButtons)
         {
-            watchAdCoinsButton.onClick.RemoveListener(OnWatchAdForCoinsClick);
-            watchAdCoinsButton.onClick.AddListener(OnWatchAdForCoinsClick);
+            if (btn != null && btn.onClick.GetPersistentEventCount() == 0)
+            {
+                btn.onClick.RemoveListener(OnWatchAdForCoinsClick);
+                btn.onClick.AddListener(OnWatchAdForCoinsClick);
+            }
         }
 
-        if (removeAdsButton != null && removeAdsButton.onClick.GetPersistentEventCount() == 0)
+        foreach (Button btn in allRemoveAdsButtons)
         {
-            removeAdsButton.onClick.RemoveListener(OnRemoveAdsClick);
-            removeAdsButton.onClick.AddListener(OnRemoveAdsClick);
+            if (btn != null && btn.onClick.GetPersistentEventCount() == 0)
+            {
+                btn.onClick.RemoveListener(OnRemoveAdsClick);
+                btn.onClick.AddListener(OnRemoveAdsClick);
+            }
         }
+    }
+
+    private static Button EnsureButtonComponent(GameObject go)
+    {
+        Button btn = go.GetComponent<Button>();
+        if (btn == null)
+        {
+            btn = go.AddComponent<Button>();
+            Graphic g = go.GetComponent<Graphic>();
+            if (g != null)
+            {
+                g.raycastTarget = true;
+                btn.targetGraphic = g;
+            }
+        }
+        return btn;
     }
 
     public void OnWatchAdForCoinsClick()
@@ -470,7 +508,8 @@ public class ThemeSelectionManager : MonoBehaviour
 
         if (lockFont == null)
         {
-            foreach (TextMeshProUGUI tmp in GetComponentsInChildren<TextMeshProUGUI>(true))
+            Transform searchRoot = GetSelectionRoot();
+            foreach (TextMeshProUGUI tmp in searchRoot.GetComponentsInChildren<TextMeshProUGUI>(true))
             {
                 if (tmp.font != null && tmp.font.name.IndexOf("Freude", System.StringComparison.OrdinalIgnoreCase) >= 0)
                 {
@@ -480,7 +519,7 @@ public class ThemeSelectionManager : MonoBehaviour
             }
             if (lockFont == null)
             {
-                TextMeshProUGUI anyTmp = GetComponentInChildren<TextMeshProUGUI>(true);
+                TextMeshProUGUI anyTmp = searchRoot.GetComponentInChildren<TextMeshProUGUI>(true);
                 if (anyTmp != null) lockFont = anyTmp.font;
             }
         }
@@ -490,13 +529,17 @@ public class ThemeSelectionManager : MonoBehaviour
     {
         EnsureThemeVisualAssets();
 
+        Transform searchRoot = GetSelectionRoot();
+        Transform targetParent = searchRoot.Find("Image") ?? searchRoot;
+
         GameObject badge = new GameObject("RuntimeCoinsBadge", typeof(RectTransform), typeof(Image));
-        badge.transform.SetParent(transform, false);
+        badge.transform.SetParent(targetParent, false);
+        badge.transform.SetAsLastSibling();
         RectTransform rt = badge.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(1f, 1f);
         rt.anchorMax = new Vector2(1f, 1f);
         rt.pivot = new Vector2(1f, 1f);
-        rt.anchoredPosition = new Vector2(-28f, -24f);
+        rt.anchoredPosition = new Vector2(-28f, -40f);
         rt.sizeDelta = new Vector2(220f, 68f);
 
         Image bgImg = badge.GetComponent<Image>();
@@ -541,6 +584,19 @@ public class ThemeSelectionManager : MonoBehaviour
         coinsText.alignment = TextAlignmentOptions.Center;
     }
 
+    private static Transform FindChildRecursive(Transform root, string targetName)
+    {
+        for (int i = 0; i < root.childCount; i++)
+        {
+            Transform child = root.GetChild(i);
+            if (child.name.Equals(targetName, System.StringComparison.OrdinalIgnoreCase))
+                return child;
+            Transform nested = FindChildRecursive(child, targetName);
+            if (nested != null) return nested;
+        }
+        return null;
+    }
+
     private void UpdateCoinsUI(int currentCoins)
     {
         if (coinsText != null)
@@ -549,8 +605,12 @@ public class ThemeSelectionManager : MonoBehaviour
 
     private void UpdateRemoveAdsButton()
     {
-        if (removeAdsButton != null)
-            removeAdsButton.gameObject.SetActive(!AdManager.IsNoAdsPurchased);
+        bool show = !AdManager.IsNoAdsPurchased;
+        foreach (Button btn in allRemoveAdsButtons)
+        {
+            if (btn != null)
+                btn.gameObject.SetActive(show);
+        }
     }
 
     public bool IsItemUnlocked(ThemeCategory category, int index)
