@@ -13071,6 +13071,7 @@ MonoBehaviour:
   InactiveUndoButton: {fileID: 1796016260}
   ActivePlus: {fileID: 345135322}
   InactivePlus: {fileID: 1019454183}
+  winPopupDelay: 1.15
 --- !u!1 &767311611
 GameObject:
   m_ObjectHideFlags: 0

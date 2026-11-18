@@ -824,6 +824,7 @@ public class LevelBuilder : MonoBehaviour
                 break;
 
             default:
+                MakeProceduralLevel(GameManager.Instance.level);
                 break;
         }
     }
@@ -8686,5 +8687,71 @@ public class LevelBuilder : MonoBehaviour
 
         //recipiente 10
         bottlesController.SpawnBottle();
+    }
+
+    private void MakeProceduralLevel(int levelIndex)
+    {
+        System.Random rng = new System.Random(levelIndex * 7919 + 104729);
+
+        // Cycle between 8, 9, and 10 filled bottles (+ 2 empty = 10, 11, 12 total)
+        int filledCount = 8 + (levelIndex % 3);
+        int emptyCount = 2;
+        int totalBottles = filledCount + emptyCount;
+
+        bottlesController.SetBottlesAmount(totalBottles, filledCount);
+
+        // Pick `filledCount` distinct color indices from 0..11
+        int[] allColors = new int[12];
+        for (int i = 0; i < 12; i++) allColors[i] = i;
+        for (int i = 11; i > 0; i--)
+        {
+            int j = rng.Next(i + 1);
+            int tmp = allColors[i];
+            allColors[i] = allColors[j];
+            allColors[j] = tmp;
+        }
+
+        // Build 4 layers per chosen color and shuffle
+        int totalLayers = filledCount * 4;
+        int[] layers = new int[totalLayers];
+        for (int i = 0; i < filledCount; i++)
+        {
+            for (int k = 0; k < 4; k++)
+                layers[i * 4 + k] = allColors[i];
+        }
+
+        for (int i = totalLayers - 1; i > 0; i--)
+        {
+            int j = rng.Next(i + 1);
+            int tmp = layers[i];
+            layers[i] = layers[j];
+            layers[j] = tmp;
+        }
+
+        // Ensure no bottle starts already solved
+        for (int b = 0; b < filledCount; b++)
+        {
+            int idx = b * 4;
+            if (layers[idx] == layers[idx + 1] &&
+                layers[idx] == layers[idx + 2] &&
+                layers[idx] == layers[idx + 3])
+            {
+                int swapIdx = ((b + 1) % filledCount) * 4;
+                int tmp = layers[idx + 3];
+                layers[idx + 3] = layers[swapIdx];
+                layers[swapIdx] = tmp;
+            }
+        }
+
+        for (int b = 0; b < filledCount; b++)
+        {
+            int idx = b * 4;
+            bottlesController.SpawnBottle(layers[idx], layers[idx + 1], layers[idx + 2], layers[idx + 3]);
+        }
+
+        for (int e = 0; e < emptyCount; e++)
+        {
+            bottlesController.SpawnBottle();
+        }
     }
 }
