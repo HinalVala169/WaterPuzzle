@@ -36,6 +36,10 @@ public class BottlesController : MonoBehaviour
     [SerializeField] private GameObject ActivePlus;
     [SerializeField] private GameObject InactivePlus;
 
+    [Header("Victory Delay")]
+    [SerializeField] private float winPopupDelay = 1.15f;
+    private bool victoryTriggered = false;
+
 
 
     private void Awake()
@@ -121,8 +125,9 @@ public class BottlesController : MonoBehaviour
             //Debug.Log("Verificando o recipiente num: " + x + " e ele está: " + (bottleController[x].CheckIfItsDone() ? "Completo" : "Incompleto"));
         }
 
-        if (z == victoryCondition)
+        if (z == victoryCondition && !victoryTriggered)
         {
+            victoryTriggered = true;
             LoadNextLevel();
         }
     }
@@ -142,8 +147,14 @@ public class BottlesController : MonoBehaviour
     {
         //salvando o level do jogo
         GameManager.Instance.SaveData();
-        
+
         GameManager.Instance.gamePause = true;
+        StartCoroutine(DelayedShowWinScreen());
+    }
+
+    private System.Collections.IEnumerator DelayedShowWinScreen()
+    {
+        yield return new WaitForSeconds(winPopupDelay);
         GameController.Instance.NextLevel();
     }
 

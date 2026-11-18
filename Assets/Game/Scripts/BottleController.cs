@@ -93,8 +93,95 @@ public class BottleController : MonoBehaviour
     private Transform pourParticlesOriginalParent;
     private Transform splashParticlesOriginalParent;
 
+    private static Sprite cachedDropletSprite;
+
+    private void EnsureRuntimeSplashParticles()
+    {
+        if (splashParticles != null) return;
+
+        GameObject go = new GameObject("RuntimeSplashParticles");
+        go.transform.SetParent(transform, false);
+        go.transform.localPosition = Vector3.zero;
+
+        splashParticles = go.AddComponent<ParticleSystem>();
+        splashParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+        var main = splashParticles.main;
+        main.duration = 0.5f;
+        main.loop = true;
+        main.playOnAwake = false;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.22f, 0.42f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(0.45f, 1.15f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.035f, 0.085f);
+        main.gravityModifier = 0.7f;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+
+        var emission = splashParticles.emission;
+        emission.enabled = true;
+        emission.rateOverTime = 18f;
+
+        var shape = splashParticles.shape;
+        shape.enabled = true;
+        shape.shapeType = ParticleSystemShapeType.Cone;
+        shape.angle = 55f;
+        shape.radius = 0.04f;
+        shape.rotation = new Vector3(-90f, 0f, 0f);
+
+        var sizeOverLifetime = splashParticles.sizeOverLifetime;
+        sizeOverLifetime.enabled = true;
+        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(
+            new Keyframe(0f, 0.7f),
+            new Keyframe(0.4f, 1f),
+            new Keyframe(1f, 0f)
+        ));
+
+        var psRenderer = splashParticles.GetComponent<ParticleSystemRenderer>();
+        if (psRenderer != null)
+        {
+            psRenderer.renderMode = ParticleSystemRenderMode.Billboard;
+            psRenderer.sortingOrder = 5;
+            Shader spriteShader = Shader.Find("Sprites/Default");
+            if (spriteShader != null)
+            {
+                Material mat = new Material(spriteShader);
+                mat.mainTexture = GetDropletTexture();
+                psRenderer.material = mat;
+            }
+        }
+    }
+
+    private static Texture2D GetDropletTexture()
+    {
+        if (cachedDropletSprite != null)
+            return cachedDropletSprite.texture;
+
+        const int size = 16;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Color[] pixels = new Color[size * size];
+        float half = (size - 1) * 0.5f;
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float dx = (x - half) / half;
+                float dy = (y - half) / half;
+                float dist = Mathf.Sqrt(dx * dx + dy * dy);
+                float alpha = Mathf.Clamp01((1f - dist) * 2.5f);
+                pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+            }
+        }
+
+        tex.SetPixels(pixels);
+        tex.Apply();
+        cachedDropletSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
+        return tex;
+    }
+
     private void PlayPourEffects()
     {
+        EnsureRuntimeSplashParticles();
+
         if (pourParticles != null)
         {
             var main = pourParticles.main;
@@ -857,10 +944,12 @@ public void SetTheme(
             UIController.Vibrate();
             bc.VerifyVictory();
 
-            // ✅ CHECK HERE
-            if (UIController.IsBottleTopEnabled && bottleControllerRef.stopper != null)
+            if (bottleControllerRef.stopper != null)
             {
-                bottleControllerRef.stopper.Animate();
+                if (UIController.IsBottleTopEnabled)
+                    bottleControllerRef.stopper.Animate();
+                else
+                    bottleControllerRef.stopper.PlayCompletionEffectOnly();
             }
         }
 
@@ -1068,9 +1157,12 @@ public void SetTheme(
             UIController.Vibrate();
             bc.VerifyVictory();
 
-            if (UIController.IsBottleTopEnabled && bottleControllerRef.stopper != null)
+            if (bottleControllerRef.stopper != null)
             {
-                bottleControllerRef.stopper.Animate();
+                if (UIController.IsBottleTopEnabled)
+                    bottleControllerRef.stopper.Animate();
+                else
+                    bottleControllerRef.stopper.PlayCompletionEffectOnly();
             }
         }
     }
