@@ -16,6 +16,8 @@ public class LoadingScreenController : MonoBehaviour
     [SerializeField] private RectTransform bottleRect;
     [SerializeField] private RectTransform bottomWave;
     [SerializeField] private TextMeshProUGUI loadingText;
+    [SerializeField] private TitleScreenController titleScreen;
+    [SerializeField] private bool showTitleScreenOnComplete = true;
 
     [Header("Decorations")]
     [SerializeField] private List<RectTransform> stars = new List<RectTransform>();
@@ -145,6 +147,9 @@ public class LoadingScreenController : MonoBehaviour
             if (txtRt != null)
                 loadingText = txtRt.GetComponent<TextMeshProUGUI>();
         }
+
+        if (titleScreen == null)
+            titleScreen = FindFirstObjectByType<TitleScreenController>(FindObjectsInactive.Include);
 
         if (stars.Count == 0)
         {
@@ -372,9 +377,12 @@ public class LoadingScreenController : MonoBehaviour
         float remaining = Mathf.Max(0.4f, duration - 0.38f);
         yield return new WaitForSecondsRealtime(remaining);
 
-        // Fade out cleanly
+        // Fade out cleanly and reveal Title Screen so its intro animation plays on cue
         isTransitioning = true;
         hasShownInitialLoading = true;
+
+        if (showTitleScreenOnComplete && titleScreen != null)
+            titleScreen.gameObject.SetActive(true);
 
         float elapsed = 0f;
         while (elapsed < fadeOutDuration)

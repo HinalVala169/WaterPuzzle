@@ -74,8 +74,6 @@ public class TitleScreenController : MonoBehaviour
     private bool initialized;
     private bool isTransitioning;
     private bool didPauseGameplay;
-    private bool previousGameManagerPause;
-    private bool previousGameControllerPause;
 
     private void Awake()
     {
@@ -646,22 +644,16 @@ public class TitleScreenController : MonoBehaviour
         {
             didPauseGameplay = true;
             if (GameManager.Instance != null)
-            {
-                previousGameManagerPause = GameManager.Instance.gamePause;
                 GameManager.Instance.gamePause = true;
-            }
             if (GameController.Instance != null)
-            {
-                previousGameControllerPause = GameController.Instance.shouldGamePause;
                 GameController.Instance.shouldGamePause = true;
-            }
         }
         else
         {
             if (GameManager.Instance != null)
-                GameManager.Instance.gamePause = previousGameManagerPause;
+                GameManager.Instance.gamePause = false;
             if (GameController.Instance != null)
-                GameController.Instance.shouldGamePause = previousGameControllerPause;
+                GameController.Instance.shouldGamePause = false;
         }
     }
 
