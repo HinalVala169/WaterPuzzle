@@ -413,6 +413,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: c1e0ff31f3aacd74c93f66d2991e04d2, type: 3}
   selectedSprite: {fileID: -4178046375966092550, guid: 1b89f790f89314c4c944771bddb19533, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 5
   category: 2
 --- !u!1 &47302576
@@ -706,6 +712,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 12
   category: 1
 --- !u!1 &57119264
@@ -1951,6 +1963,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 20
   category: 1
 --- !u!1 &127734783
@@ -2097,6 +2115,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: c1e0ff31f3aacd74c93f66d2991e04d2, type: 3}
   selectedSprite: {fileID: -4178046375966092550, guid: 1b89f790f89314c4c944771bddb19533, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 4
   category: 2
 --- !u!1 &128503097
@@ -2610,6 +2634,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 18
   category: 1
 --- !u!1 &145990124
@@ -3516,6 +3546,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 9
   category: 0
 --- !u!1 &188551602
@@ -4448,6 +4484,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 22
   category: 1
 --- !u!1 &263925851
@@ -4739,6 +4781,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 15
   category: 1
 --- !u!1 &280340661
@@ -6083,6 +6131,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 25
   category: 1
 --- !u!1 &330713050
@@ -7303,6 +7357,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 13
   category: 1
 --- !u!1 &398311454
@@ -7444,6 +7504,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 3
   category: 1
 --- !u!1 &410681221
@@ -8204,6 +8270,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 2
   category: 0
 --- !u!1 &457565254
@@ -8495,6 +8567,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 7
   category: 0
 --- !u!1 &476046313
@@ -8984,6 +9062,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 5
   category: 1
 --- !u!1 &497050207
@@ -9200,6 +9284,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 8
   category: 1
 --- !u!1 &503368959
@@ -10542,6 +10632,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 9
   category: 1
 --- !u!1 &589903680
@@ -13072,6 +13168,7 @@ MonoBehaviour:
   ActivePlus: {fileID: 345135322}
   InactivePlus: {fileID: 1019454183}
   winPopupDelay: 1.15
+  coinsPerLevelWin: 50
 --- !u!1 &767311611
 GameObject:
   m_ObjectHideFlags: 0
@@ -13774,6 +13871,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 0
   category: 1
 --- !u!1 &816835388
@@ -14505,6 +14608,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 24
   category: 1
 --- !u!1 &876261472
@@ -14779,6 +14888,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 29
   category: 1
 --- !u!1 &889012970
@@ -15194,6 +15309,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 16
   category: 1
 --- !u!1 &899386375
@@ -15963,6 +16084,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 11
   category: 1
 --- !u!1 &961805495
@@ -17344,6 +17471,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 27
   category: 1
 --- !u!1 &1039965099
@@ -18640,6 +18773,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 11
   category: 0
 --- !u!1 &1100096928
@@ -18786,6 +18925,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: c1e0ff31f3aacd74c93f66d2991e04d2, type: 3}
   selectedSprite: {fileID: -4178046375966092550, guid: 1b89f790f89314c4c944771bddb19533, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 3
   category: 2
 --- !u!1 &1105832300
@@ -18927,6 +19072,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 26
   category: 1
 --- !u!1 &1107606556
@@ -19590,6 +19741,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 7
   category: 1
 --- !u!1 &1145198793
@@ -21818,6 +21975,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 10
   category: 0
 --- !u!1 &1338786597
@@ -22846,6 +23009,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 8
   category: 0
 --- !u!1 &1371348350
@@ -22992,6 +23161,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: c1e0ff31f3aacd74c93f66d2991e04d2, type: 3}
   selectedSprite: {fileID: -4178046375966092550, guid: 1b89f790f89314c4c944771bddb19533, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 0
   category: 2
 --- !u!1 &1375138734
@@ -23133,6 +23308,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 28
   category: 1
 --- !u!1 &1375309507
@@ -23543,6 +23724,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 17
   category: 1
 --- !u!1 &1410731133
@@ -24623,6 +24810,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 21
   category: 1
 --- !u!1 &1498434280
@@ -24839,6 +25032,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 23
   category: 1
 --- !u!1 &1526790454
@@ -25767,6 +25966,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 4
   category: 1
 --- !u!1 &1596307897
@@ -26045,6 +26250,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 2
   category: 1
 --- !u!1 &1602048557
@@ -26191,6 +26402,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: c1e0ff31f3aacd74c93f66d2991e04d2, type: 3}
   selectedSprite: {fileID: -4178046375966092550, guid: 1b89f790f89314c4c944771bddb19533, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 1
   category: 2
 --- !u!1 &1602081096
@@ -26908,6 +27125,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 19
   category: 1
 --- !u!1 &1659618646
@@ -27098,6 +27321,21 @@ MonoBehaviour:
   bottleTop: {fileID: 0}
   bottleFill: {fileID: 0}
   bottlesController: {fileID: 763525419}
+  coinsText: {fileID: 0}
+  watchAdCoinsButton: {fileID: 0}
+  removeAdsButton: {fileID: 0}
+  adCoinReward: 2000
+  defaultCoinCost: 500
+  freeItemsPerCategory: 2
+  bottleLevelUnlockIndex: 2
+  bottleRequiredLevel: 30
+  bgLevelUnlockIndex: 2
+  bgRequiredLevel: 15
+  lockIconSprite: {fileID: 0}
+  coinPillSprite: {fileID: 0}
+  coinIconSprite: {fileID: 0}
+  headerCoinPanelSprite: {fileID: 0}
+  lockFont: {fileID: 0}
 --- !u!1 &1660757222
 GameObject:
   m_ObjectHideFlags: 0
@@ -27312,6 +27550,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 3
   category: 0
 --- !u!1 &1680184749
@@ -28476,6 +28720,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 14
   category: 1
 --- !u!1 &1753358117
@@ -28617,6 +28867,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 1
   category: 1
 --- !u!1 &1755725824
@@ -29254,6 +29510,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 6
   category: 0
 --- !u!1 &1815308755
@@ -29470,6 +29732,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 5
   category: 0
 --- !u!1 &1831064484
@@ -31195,6 +31463,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 10
   category: 1
 --- !u!1 &1941694592
@@ -31376,6 +31650,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 6
   category: 1
 --- !u!1 &1953323232
@@ -31592,6 +31872,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 0
   category: 0
 --- !u!1 &1953432735
@@ -32773,6 +33059,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 1
   category: 0
 --- !u!1 &2037914189
@@ -33632,6 +33924,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: 6e934ed1e031df14da92904e7219d5ae, type: 3}
   selectedSprite: {fileID: -6470460504253458178, guid: 9340cc3f781e21f48b82f9f2dba136d1, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 4
   category: 0
 --- !u!1 &2100231181
@@ -33853,6 +34151,12 @@ MonoBehaviour:
   normalSprite: {fileID: 6937817954938267909, guid: c1e0ff31f3aacd74c93f66d2991e04d2, type: 3}
   selectedSprite: {fileID: -4178046375966092550, guid: 1b89f790f89314c4c944771bddb19533, type: 3}
   previewImage: {fileID: 0}
+  lockOverlay: {fileID: 0}
+  coinBadge: {fileID: 0}
+  coinCostText: {fileID: 0}
+  levelBadge: {fileID: 0}
+  levelReqText: {fileID: 0}
+  checkmarkBadge: {fileID: 0}
   index: 2
   category: 2
 --- !u!1 &2121846458
@@ -34073,6 +34377,127 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1001 &9900000001
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 100001, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_Name
+      value: TitleScreenCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100099, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 177
+      objectReference: {fileID: 0}
+    - target: {fileID: 100099, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 100132, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
+      propertyPath: m_sharedMaterial
+      value: 
+      objectReference: {fileID: 4779062902198662, guid: f0a54069ed641db4a8aa9fd5a4b53e81, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a1b2c3d4e5f64789a0b1c2d3e4f50003, type: 3}
 --- !u!1 &30043996656151398
 GameObject:
   m_ObjectHideFlags: 0
@@ -39962,3 +40387,4 @@ SceneRoots:
   - {fileID: 703676294}
   - {fileID: 627998399}
   - {fileID: 2141025915}
+  - {fileID: 9900000001}
