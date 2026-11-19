@@ -31,6 +31,9 @@ public class BottlesController : MonoBehaviour
     //referencia ao botão da interface de desfazer jogada
     [SerializeField] private GameObject ActiveUndoButton;
     [SerializeField] private GameObject InactiveUndoButton;
+    [SerializeField] private Color inactiveUndoColor = new Color(0.6f, 0.6f, 0.6f, 0.45f);
+    private Button activeUndoBtn;
+    private Image inactiveUndoImage;
 
     //referencia ao botão da interface de adicionar novos recipientes
     [SerializeField] private GameObject ActivePlus;
@@ -46,6 +49,41 @@ public class BottlesController : MonoBehaviour
     private void Awake()
     {
         historic = new Historic[5];
+
+        if (ActiveUndoButton != null)
+            activeUndoBtn = ActiveUndoButton.GetComponent<Button>();
+
+        if (InactiveUndoButton != null)
+        {
+            if (ActiveUndoButton != null)
+            {
+                RectTransform activeRt = ActiveUndoButton.GetComponent<RectTransform>();
+                RectTransform inactiveRt = InactiveUndoButton.GetComponent<RectTransform>();
+                if (activeRt != null && inactiveRt != null)
+                {
+                    inactiveRt.anchorMin = activeRt.anchorMin;
+                    inactiveRt.anchorMax = activeRt.anchorMax;
+                    inactiveRt.pivot = activeRt.pivot;
+                    inactiveRt.anchoredPosition = activeRt.anchoredPosition;
+                    inactiveRt.sizeDelta = activeRt.sizeDelta;
+                    inactiveRt.localScale = activeRt.localScale;
+                }
+            }
+
+            inactiveUndoImage = InactiveUndoButton.GetComponent<Image>();
+            if (inactiveUndoImage != null)
+                inactiveUndoImage.color = inactiveUndoColor;
+        }
+    }
+
+    private void Start()
+    {
+        UpdateUndoButtonState();
+    }
+
+    private void Update()
+    {
+        UpdateUndoButtonState();
     }
 
     //este método vai instanciar os recipientes
@@ -171,9 +209,47 @@ public class BottlesController : MonoBehaviour
         victoryCondition = vCondition;
     }
 
+    public bool CanUndo()
+    {
+        bool isPaused = GameManager.Instance != null && GameManager.Instance.gamePause;
+        if (availableUndo <= 0 || victoryTriggered || isPaused || SomeBottleIsUnderAnimation())
+            return false;
+
+        if (bottleController != null)
+        {
+            Historic lastMove = historic[availableUndo - 1];
+            if (bottleController[lastMove.bottle1] != null && bottleController[lastMove.bottle1].CheckIfItsDone())
+                return false;
+            if (bottleController[lastMove.bottle2] != null && bottleController[lastMove.bottle2].CheckIfItsDone())
+                return false;
+        }
+
+        return true;
+    }
+
+    public void ClearUndoHistory()
+    {
+        availableUndo = 0;
+        UpdateUndoButtonState();
+    }
+
+    private void UpdateUndoButtonState()
+    {
+        bool canUndo = CanUndo();
+
+        if (activeUndoBtn != null && activeUndoBtn.interactable != canUndo)
+            activeUndoBtn.interactable = canUndo;
+
+        if (ActiveUndoButton != null && ActiveUndoButton.activeSelf != canUndo)
+            ActiveUndoButton.SetActive(canUndo);
+
+        if (InactiveUndoButton != null && InactiveUndoButton.activeSelf == canUndo)
+            InactiveUndoButton.SetActive(!canUndo);
+    }
+
     public void Undo()
     {
-        if (availableUndo > 0 && !SomeBottleIsUnderAnimation())
+        if (CanUndo())
         {
             availableUndo--;
 
@@ -184,12 +260,10 @@ public class BottlesController : MonoBehaviour
             bottleController[historic[availableUndo].bottle2].ReloadColors(historic[availableUndo].bottle2ColorsIndex, historic[availableUndo].numberOfColorsInBottle2);
         }
 
-        if (availableUndo <= 0)
-        {
+        if (availableUndo < 0)
             availableUndo = 0;
-            ActiveUndoButton.SetActive(false);
-            InactiveUndoButton.SetActive(true);
-        }
+
+        UpdateUndoButtonState();
     }
 
     public void CreateHistoric(int bottle1, int[] colorsInBottle1, int numberOfColorsInBottle1, int bottle2, int[] colorsInBottle2, int numberOfColorsInBottle2)
@@ -219,17 +293,19 @@ public class BottlesController : MonoBehaviour
 
         if (availableUndo < 5)
             availableUndo++;
-            
-        ActiveUndoButton.SetActive(true);
-        InactiveUndoButton.SetActive(false);
+
+        UpdateUndoButtonState();
     }
 
     //método para verificar se alguma bottle está executando alguma animação
     public bool SomeBottleIsUnderAnimation()
     {
+        if (bottleController == null)
+            return false;
+
         for (int x = 0; x < bottlesAmount; x++)
         {
-            if (bottleController[x].GetUnderAnimation())
+            if (bottleController[x] != null && bottleController[x].GetUnderAnimation())
                 return true;
         }
         return false;

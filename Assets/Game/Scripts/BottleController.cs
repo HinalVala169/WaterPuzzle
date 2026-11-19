@@ -501,6 +501,7 @@ public void SetTheme(
         //indica que o outro recipiente está enchendo
         bottleControllerRef.SetIsBeingFilled(true);
         isFilling = true;
+        underAnimation = true;
 
         //método que vai verificar para qual lado o recipiente deve rotacionar 
         ChoseRotationPointAndDirection();
@@ -942,6 +943,7 @@ public void SetTheme(
         if (bottleControllerRef.CheckIfItsDone())
         {
             UIController.Vibrate();
+            bc.ClearUndoHistory();
             bc.VerifyVictory();
 
             if (bottleControllerRef.stopper != null)
@@ -1155,6 +1157,7 @@ public void SetTheme(
         if (bottleControllerRef.CheckIfItsDone())
         {
             UIController.Vibrate();
+            bc.ClearUndoHistory();
             bc.VerifyVictory();
 
             if (bottleControllerRef.stopper != null)
