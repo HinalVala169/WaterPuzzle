@@ -7,6 +7,15 @@ public static class AdManager
 
     public static event Action OnNoAdsChanged;
 
+    /// <summary>
+    /// Assign this from your Ad SDK (AdMob / Unity Ads / LevelPlay) initializer:
+    /// (onRewardEarned, onAdClosedOrFailed) => { ... }
+    /// </summary>
+    public static Action<Action, Action> RewardedAdHandler;
+    public static Action InterstitialAdHandler;
+
+    public static bool IsShowingRewardedAd { get; private set; }
+
     public static bool IsNoAdsPurchased => PlayerPrefs.GetInt(NoAdsKey, 0) == 1;
 
     public static void PurchaseNoAds()
@@ -16,22 +25,36 @@ public static class AdManager
         OnNoAdsChanged?.Invoke();
     }
 
-    public static void ShowRewardedAd(Action onRewardEarned)
+    public static void ShowRewardedAd(Action onRewardEarned, Action onAdClosedOrFailed = null)
     {
-#if UNITY_EDITOR
-        Debug.Log("[AdManager] Editor Rewarded Ad simulated -> granting reward.");
-        onRewardEarned?.Invoke();
-#else
-        // TODO: Hook your AdMob / Unity Ads / LevelPlay rewarded ad callback here
-        // and invoke onRewardEarned?.Invoke() when the user finishes watching.
-        onRewardEarned?.Invoke();
-#endif
+        if (IsShowingRewardedAd)
+            return;
+
+        if (RewardedAdHandler != null)
+        {
+            IsShowingRewardedAd = true;
+            RewardedAdHandler.Invoke(
+                () =>
+                {
+                    IsShowingRewardedAd = false;
+                    onRewardEarned?.Invoke();
+                },
+                () =>
+                {
+                    IsShowingRewardedAd = false;
+                    onAdClosedOrFailed?.Invoke();
+                });
+            return;
+        }
+
+        Debug.LogWarning("[AdManager] No Rewarded Ad SDK integrated. Import GoogleMobileAds and assign AdManager.RewardedAdHandler.");
+        onAdClosedOrFailed?.Invoke();
     }
 
     public static void ShowInterstitialIfAllowed()
     {
         if (IsNoAdsPurchased) return;
 
-        // TODO: Show interstitial ad via your Ad SDK
+        InterstitialAdHandler?.Invoke();
     }
 }

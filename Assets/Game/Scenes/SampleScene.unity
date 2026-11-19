@@ -24038,7 +24038,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: +2000
+  m_text: +150
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0f27231e35d554b4cbb3c401eb8626e2, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 8b010e3bb52b0504089368820dd2734e, type: 2}
@@ -27324,7 +27324,7 @@ MonoBehaviour:
   coinsText: {fileID: 0}
   watchAdCoinsButton: {fileID: 0}
   removeAdsButton: {fileID: 0}
-  adCoinReward: 2000
+  adCoinReward: 150
   defaultCoinCost: 500
   freeItemsPerCategory: 2
   bottleLevelUnlockIndex: 2

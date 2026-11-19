@@ -59,7 +59,9 @@ public class ThemeSelectionManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI coinsText;
     [SerializeField] private Button watchAdCoinsButton;
     [SerializeField] private Button removeAdsButton;
-    [SerializeField] private int adCoinReward = 2000;
+    [SerializeField] private int adCoinReward = 150;
+    [SerializeField] private float adCooldownSeconds = 30f;
+    [SerializeField] private int maxAdsPerDay = 5;
     [SerializeField] private int defaultCoinCost = 500;
     [SerializeField] private int freeItemsPerCategory = 2;
     [SerializeField] private int bottleLevelUnlockIndex = 2;
@@ -414,7 +416,37 @@ public class ThemeSelectionManager : MonoBehaviour
         Canvas parentCanvas = GetComponentInParent<Canvas>(true);
         if (parentCanvas != null)
             return parentCanvas.rootCanvas != null ? parentCanvas.rootCanvas.transform : parentCanvas.transform;
+
+        Transform sampleItem = GetFirstItemTransform();
+        if (sampleItem != null)
+        {
+            Canvas itemCanvas = sampleItem.GetComponentInParent<Canvas>(true);
+            if (itemCanvas != null)
+                return itemCanvas.rootCanvas != null ? itemCanvas.rootCanvas.transform : itemCanvas.transform;
+        }
+
         return transform;
+    }
+
+    private Transform GetFirstItemTransform()
+    {
+        if (bottleItems != null && bottleItems.Count > 0 && bottleItems[0] != null) return bottleItems[0].transform;
+        if (bgItems != null && bgItems.Count > 0 && bgItems[0] != null) return bgItems[0].transform;
+        if (colorItems != null && colorItems.Count > 0 && colorItems[0] != null) return colorItems[0].transform;
+        return null;
+    }
+
+    private static bool HasRemoveAdsLabel(Transform root)
+    {
+        foreach (TextMeshProUGUI tmp in root.GetComponentsInChildren<TextMeshProUGUI>(true))
+        {
+            if (tmp != null && !string.IsNullOrEmpty(tmp.text) &&
+                tmp.text.IndexOf("Remove", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void WireEconomyButtons()
@@ -431,21 +463,24 @@ public class ThemeSelectionManager : MonoBehaviour
         foreach (Transform child in searchRoot.GetComponentsInChildren<Transform>(true))
         {
             string childName = child.name;
-            if (childName.IndexOf("ADBTN", System.StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                Button btn = EnsureButtonComponent(child.gameObject);
-                if (btn != null && !allWatchAdButtons.Contains(btn))
-                    allWatchAdButtons.Add(btn);
-                if (watchAdCoinsButton == null)
-                    watchAdCoinsButton = btn;
-            }
-            else if (childName.IndexOf("RemoveAd", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            bool isRemoveAd = childName.IndexOf("RemoveAd", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                              (childName.IndexOf("ADBTN", System.StringComparison.OrdinalIgnoreCase) >= 0 && HasRemoveAdsLabel(child));
+
+            if (isRemoveAd)
             {
                 Button btn = EnsureButtonComponent(child.gameObject);
                 if (btn != null && !allRemoveAdsButtons.Contains(btn))
                     allRemoveAdsButtons.Add(btn);
                 if (removeAdsButton == null)
                     removeAdsButton = btn;
+            }
+            else if (childName.IndexOf("ADBTN", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                Button btn = EnsureButtonComponent(child.gameObject);
+                if (btn != null && !allWatchAdButtons.Contains(btn))
+                    allWatchAdButtons.Add(btn);
+                if (watchAdCoinsButton == null)
+                    watchAdCoinsButton = btn;
             }
         }
 
@@ -469,6 +504,8 @@ public class ThemeSelectionManager : MonoBehaviour
                 btn.onClick.AddListener(OnRemoveAdsClick);
             }
         }
+
+        RefreshWatchAdButtonsUI();
     }
 
     private static Button EnsureButtonComponent(GameObject go)
@@ -487,16 +524,115 @@ public class ThemeSelectionManager : MonoBehaviour
         return btn;
     }
 
+    private static float nextRewardedAdAllowedTime = -1f;
+    private const string DailyAdsDateKey = "RewardedAdsDate";
+    private const string DailyAdsCountKey = "RewardedAdsCountToday";
+
+    private void Update()
+    {
+        if (allWatchAdButtons.Count > 0)
+            RefreshWatchAdButtonsUI();
+    }
+
+    private int GetDailyAdsWatched()
+    {
+        string today = System.DateTime.Now.ToString("yyyy-MM-dd");
+        if (PlayerPrefs.GetString(DailyAdsDateKey, "") != today)
+        {
+            PlayerPrefs.SetString(DailyAdsDateKey, today);
+            PlayerPrefs.SetInt(DailyAdsCountKey, 0);
+            PlayerPrefs.Save();
+            return 0;
+        }
+        return PlayerPrefs.GetInt(DailyAdsCountKey, 0);
+    }
+
+    private void RecordDailyAdWatched()
+    {
+        int count = GetDailyAdsWatched() + 1;
+        PlayerPrefs.SetInt(DailyAdsCountKey, count);
+        PlayerPrefs.Save();
+        nextRewardedAdAllowedTime = Time.realtimeSinceStartup + adCooldownSeconds;
+    }
+
+    private float GetRemainingAdCooldown()
+    {
+        if (nextRewardedAdAllowedTime < 0f) return 0f;
+        return Mathf.Max(0f, nextRewardedAdAllowedTime - Time.realtimeSinceStartup);
+    }
+
+    private bool CanWatchRewardedAd(out string buttonLabel)
+    {
+        if (maxAdsPerDay > 0 && GetDailyAdsWatched() >= maxAdsPerDay)
+        {
+            buttonLabel = "Limit";
+            return false;
+        }
+
+        float cooldown = GetRemainingAdCooldown();
+        if (cooldown > 0f)
+        {
+            buttonLabel = Mathf.CeilToInt(cooldown) + "s";
+            return false;
+        }
+
+        buttonLabel = "+" + adCoinReward;
+        return !AdManager.IsShowingRewardedAd;
+    }
+
+    private void RefreshWatchAdButtonsUI()
+    {
+        bool canWatch = CanWatchRewardedAd(out string label);
+        foreach (Button btn in allWatchAdButtons)
+        {
+            if (btn == null) continue;
+            if (btn.interactable != canWatch)
+                btn.interactable = canWatch;
+
+            TextMeshProUGUI tmp = btn.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (tmp != null && tmp.text != label)
+                tmp.text = label;
+        }
+    }
+
     public void OnWatchAdForCoinsClick()
     {
-        AdManager.ShowRewardedAd(() => CoinManager.AddCoins(adCoinReward));
+        if (AdManager.IsShowingRewardedAd || !CanWatchRewardedAd(out _))
+        {
+            RefreshWatchAdButtonsUI();
+            return;
+        }
+
+        SetWatchAdButtonsInteractable(false);
+        AdManager.ShowRewardedAd(
+            onRewardEarned: () =>
+            {
+                CoinManager.AddCoins(adCoinReward);
+                RecordDailyAdWatched();
+                RefreshWatchAdButtonsUI();
+            },
+            onAdClosedOrFailed: () =>
+            {
+                RefreshWatchAdButtonsUI();
+            });
+    }
+
+    private void SetWatchAdButtonsInteractable(bool interactable)
+    {
+        foreach (Button btn in allWatchAdButtons)
+        {
+            if (btn != null)
+                btn.interactable = interactable;
+        }
     }
 
     public void OnRemoveAdsClick()
     {
-        UIController ui = FindObjectOfType<UIController>();
+        UIController ui = FindObjectOfType<UIController>(true);
         if (ui != null)
             ui.OnRemoveAdsClick();
+        else
+            AdManager.PurchaseNoAds();
     }
 
     private void EnsureThemeVisualAssets()
