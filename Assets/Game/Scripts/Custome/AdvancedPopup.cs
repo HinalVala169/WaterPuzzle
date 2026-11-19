@@ -31,27 +31,27 @@ public class AdvancedPopup : MonoBehaviour
     {
         isAnimating = true;
 
-        panel.localScale = Vector3.zero;
-        popupGroup.alpha = 0;
-        backgroundGroup.alpha = 0;
+        if (panel != null) panel.localScale = Vector3.zero;
+        if (popupGroup != null) popupGroup.alpha = 0;
+        if (backgroundGroup != null) backgroundGroup.alpha = 0;
 
         float time = 0;
 
         while (time < duration)
         {
-            time += Time.deltaTime;
-            float t = curve.Evaluate(time / duration);
+            time += Time.unscaledDeltaTime;
+            float t = curve != null && curve.length > 0 ? curve.Evaluate(time / duration) : Mathf.Clamp01(time / duration);
 
-            panel.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, t);
-            popupGroup.alpha = t;
-            backgroundGroup.alpha = t * 0.6f; // dim effect
+            if (panel != null) panel.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, t);
+            if (popupGroup != null) popupGroup.alpha = t;
+            if (backgroundGroup != null) backgroundGroup.alpha = t * 0.6f; // dim effect
 
             yield return null;
         }
 
-        panel.localScale = Vector3.one;
-        popupGroup.alpha = 1;
-        backgroundGroup.alpha = 0.6f;
+        if (panel != null) panel.localScale = Vector3.one;
+        if (popupGroup != null) popupGroup.alpha = 1;
+        if (backgroundGroup != null) backgroundGroup.alpha = 0.6f;
 
         isAnimating = false;
     }

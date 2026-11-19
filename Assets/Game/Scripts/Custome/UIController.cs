@@ -444,9 +444,33 @@ public class UIController : MonoBehaviour
 
     public void OnRemoveAdsClick()
     {
+        Debug.Log("[UIController] OnRemoveAdsClick called. removeAdCanvas=" + (removeAdCanvas != null ? removeAdCanvas.name : "NULL"));
         CloseAllPopups();
+        WireRemoveAdsPopup();
         if (removeAdCanvas != null)
+        {
+            if (removeAdCanvas.transform.parent != null && !removeAdCanvas.transform.parent.gameObject.activeInHierarchy)
+            {
+                removeAdCanvas.transform.SetParent(null, false);
+                if (removeAdCanvas.GetComponent<CanvasScaler>() == null)
+                {
+                    CanvasScaler scaler = removeAdCanvas.AddComponent<CanvasScaler>();
+                    scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                    scaler.referenceResolution = new Vector2(1080f, 1920f);
+                    scaler.matchWidthOrHeight = 0.5f;
+                }
+            }
+
+            Canvas popupCanvas = removeAdCanvas.GetComponent<Canvas>();
+            if (popupCanvas != null)
+            {
+                popupCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                popupCanvas.overrideSorting = true;
+                popupCanvas.sortingOrder = 10;
+            }
+
             removeAdCanvas.SetActive(true);
+        }
     }
 
     #endregion

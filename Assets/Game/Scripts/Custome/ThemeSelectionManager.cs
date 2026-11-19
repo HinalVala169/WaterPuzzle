@@ -607,9 +607,12 @@ public class ThemeSelectionManager : MonoBehaviour
         AdManager.ShowRewardedAd(
             onRewardEarned: () =>
             {
+                int startCoins = CoinManager.Coins;
+                isPlayingCoinRewardAnim = true;
                 CoinManager.AddCoins(adCoinReward);
                 RecordDailyAdWatched();
                 RefreshWatchAdButtonsUI();
+                StartCoinCollectAnimation(startCoins, CoinManager.Coins);
             },
             onAdClosedOrFailed: () =>
             {
@@ -628,11 +631,15 @@ public class ThemeSelectionManager : MonoBehaviour
 
     public void OnRemoveAdsClick()
     {
+        Debug.Log("[ThemeSelectionManager] Remove AD button clicked.");
         UIController ui = FindObjectOfType<UIController>(true);
         if (ui != null)
             ui.OnRemoveAdsClick();
         else
+        {
+            Debug.LogWarning("[ThemeSelectionManager] UIController not found; purchasing NoAds directly.");
             AdManager.PurchaseNoAds();
+        }
     }
 
     private void EnsureThemeVisualAssets()
@@ -733,10 +740,175 @@ public class ThemeSelectionManager : MonoBehaviour
         return null;
     }
 
+    private Coroutine coinCollectRoutine;
+    private bool isPlayingCoinRewardAnim;
+
     private void UpdateCoinsUI(int currentCoins)
     {
+        if (isPlayingCoinRewardAnim)
+            return;
+
         if (coinsText != null)
             coinsText.text = currentCoins.ToString();
+    }
+
+    private void StartCoinCollectAnimation(int startCoins, int targetCoins)
+    {
+        if (coinCollectRoutine != null)
+            StopCoroutine(coinCollectRoutine);
+
+        coinCollectRoutine = StartCoroutine(PlayCoinCollectAnimation(startCoins, targetCoins));
+    }
+
+    private IEnumerator PlayCoinCollectAnimation(int startCoins, int targetCoins)
+    {
+        isPlayingCoinRewardAnim = true;
+        EnsureThemeVisualAssets();
+
+        if (coinsText == null)
+        {
+            isPlayingCoinRewardAnim = false;
+            yield break;
+        }
+
+        Transform badgeTransform = coinsText.transform.parent != null ? coinsText.transform.parent : coinsText.transform;
+        Transform animParent = GetSelectionRoot();
+        Vector3 startWorldPos = watchAdCoinsButton != null ? watchAdCoinsButton.transform.position : badgeTransform.position + Vector3.down * 400f;
+        Vector3 targetWorldPos = badgeTransform.position;
+
+        const int coinCount = 10;
+        const float spawnStagger = 0.045f;
+        const float flyDuration = 0.52f;
+        int arrivedCount = 0;
+
+        for (int i = 0; i < coinCount; i++)
+        {
+            GameObject coinObj = new GameObject("FlyingCoin_" + i, typeof(RectTransform), typeof(Image));
+            coinObj.transform.SetParent(animParent, false);
+            coinObj.transform.SetAsLastSibling();
+
+            RectTransform rt = coinObj.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(56f, 56f);
+
+            Vector3 burstOffset = new Vector3(
+                UnityEngine.Random.Range(-70f, 70f),
+                UnityEngine.Random.Range(-25f, 55f),
+                0f);
+            rt.position = startWorldPos;
+
+            Image img = coinObj.GetComponent<Image>();
+            if (coinIconSprite != null)
+                img.sprite = coinIconSprite;
+            else
+                img.color = new Color(1f, 0.82f, 0.15f, 1f);
+            img.preserveAspect = true;
+            img.raycastTarget = false;
+
+            StartCoroutine(AnimateSingleFlyingCoin(
+                rt,
+                startWorldPos,
+                startWorldPos + burstOffset,
+                badgeTransform,
+                flyDuration,
+                () =>
+                {
+                    arrivedCount++;
+                    float progress = Mathf.Clamp01((float)arrivedCount / coinCount);
+                    int displayValue = Mathf.RoundToInt(Mathf.Lerp(startCoins, targetCoins, progress));
+                    if (coinsText != null)
+                        coinsText.text = displayValue.ToString();
+                    StartCoroutine(PulseCoinBadge(badgeTransform));
+                }));
+
+            yield return new WaitForSecondsRealtime(spawnStagger);
+        }
+
+        float timeout = flyDuration + 0.35f;
+        float waitElapsed = 0f;
+        while (arrivedCount < coinCount && waitElapsed < timeout)
+        {
+            waitElapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        isPlayingCoinRewardAnim = false;
+        if (coinsText != null)
+            coinsText.text = CoinManager.Coins.ToString();
+        coinCollectRoutine = null;
+    }
+
+    private IEnumerator AnimateSingleFlyingCoin(
+        RectTransform coinRt,
+        Vector3 originPos,
+        Vector3 burstPos,
+        Transform targetTransform,
+        float duration,
+        System.Action onArrived)
+    {
+        if (coinRt == null)
+        {
+            onArrived?.Invoke();
+            yield break;
+        }
+
+        // Phase 1: quick burst outward
+        float burstDuration = 0.14f;
+        float elapsed = 0f;
+        while (elapsed < burstDuration && coinRt != null)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / burstDuration);
+            float easeOut = 1f - (1f - t) * (1f - t);
+            coinRt.position = Vector3.Lerp(originPos, burstPos, easeOut);
+            coinRt.localScale = Vector3.one * Mathf.Lerp(0.4f, 1.05f, easeOut);
+            yield return null;
+        }
+
+        // Phase 2: curve into the coin badge
+        elapsed = 0f;
+        Vector3 endPos = targetTransform != null ? targetTransform.position : burstPos;
+        Vector3 controlPos = (burstPos + endPos) * 0.5f + new Vector3(UnityEngine.Random.Range(-120f, 120f), 80f, 0f);
+
+        while (elapsed < duration && coinRt != null)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float ease = t * t * (3f - 2f * t);
+
+            if (targetTransform != null)
+                endPos = targetTransform.position;
+
+            // Quadratic Bezier curve
+            float u = 1f - ease;
+            Vector3 pos = (u * u) * burstPos + (2f * u * ease) * controlPos + (ease * ease) * endPos;
+            coinRt.position = pos;
+            coinRt.localScale = Vector3.one * Mathf.Lerp(1.05f, 0.7f, ease);
+            yield return null;
+        }
+
+        if (coinRt != null)
+            Destroy(coinRt.gameObject);
+
+        onArrived?.Invoke();
+    }
+
+    private IEnumerator PulseCoinBadge(Transform badgeTransform)
+    {
+        if (badgeTransform == null) yield break;
+
+        badgeTransform.localScale = Vector3.one * 1.14f;
+        float elapsed = 0f;
+        const float duration = 0.12f;
+        while (elapsed < duration && badgeTransform != null)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            badgeTransform.localScale = Vector3.Lerp(Vector3.one * 1.14f, Vector3.one, t);
+            yield return null;
+        }
+
+        if (badgeTransform != null)
+            badgeTransform.localScale = Vector3.one;
     }
 
     private void UpdateRemoveAdsButton()
