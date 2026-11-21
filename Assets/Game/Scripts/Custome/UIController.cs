@@ -292,6 +292,7 @@ public class UIController : MonoBehaviour
     {
         AudioListener.volume = isSoundOn ? 1f : 0f;
         AudioListener.pause = !isSoundOn;
+        AudioManager.RefreshSoundSetting();
     }
 
     private void ApplyBottleTopToCompletedBottles()
@@ -315,6 +316,7 @@ public class UIController : MonoBehaviour
         PlayerPrefs.SetInt("Sound", isSoundOn ? 1 : 0);
         PlayerPrefs.Save();
         ApplyAudioState();
+        AudioManager.PlayUIClick();
         UpdateUI();
     }
 

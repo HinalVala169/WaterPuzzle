@@ -74,13 +74,17 @@ public class GameController : MonoBehaviour
                         //     FirstBottle = null;
 
                         else
+                        {
                             FirstBottle.Selected();
+                            AudioManager.PlayBottleSelect();
+                        }
                     }
                     else
                     {
                         if (FirstBottle == hit.collider.GetComponent<BottleController>())
                         {
                             FirstBottle.Unselected();
+                            AudioManager.PlayBottleDeselect();
                             FirstBottle = null;
                         }
                         else
@@ -115,10 +119,16 @@ public class GameController : MonoBehaviour
                                     return;
                                 }
                                 if (FirstBottle.CheckIfItsDone() || FirstBottle.numberOfColorsInBottle == 0)
+                                {
+                                    AudioManager.PlayError();
                                     FirstBottle = null;
+                                }
 
                                 else
+                                {
                                     FirstBottle.Selected();
+                                    AudioManager.PlayBottleSelect();
+                                }
                             }
                         }
                     }

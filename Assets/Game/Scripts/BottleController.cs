@@ -180,6 +180,7 @@ public class BottleController : MonoBehaviour
 
     private void PlayPourEffects()
     {
+        AudioManager.PlayBottlePour();
         EnsureRuntimeSplashParticles();
 
         if (pourParticles != null)
@@ -973,6 +974,7 @@ public void SetTheme(
         //verificando se o outro recipiente está cheio
         if (bottleControllerRef.CheckIfItsDone())
         {
+            AudioManager.PlayBottleComplete();
             UIController.Vibrate();
             bc.ClearUndoHistory();
             bc.VerifyVictory();
@@ -1187,6 +1189,7 @@ public void SetTheme(
 
         if (bottleControllerRef.CheckIfItsDone())
         {
+            AudioManager.PlayBottleComplete();
             UIController.Vibrate();
             bc.ClearUndoHistory();
             bc.VerifyVictory();

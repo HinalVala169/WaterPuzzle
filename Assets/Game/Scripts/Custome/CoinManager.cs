@@ -28,6 +28,7 @@ public static class CoinManager
         int updated = Coins + amount;
         PlayerPrefs.SetInt(CoinsKey, updated);
         PlayerPrefs.Save();
+        AudioManager.PlayCoin();
         OnCoinsChanged?.Invoke(updated);
     }
 
@@ -39,6 +40,7 @@ public static class CoinManager
         int updated = Coins - cost;
         PlayerPrefs.SetInt(CoinsKey, updated);
         PlayerPrefs.Save();
+        AudioManager.PlayUIClick();
         OnCoinsChanged?.Invoke(updated);
         return true;
     }

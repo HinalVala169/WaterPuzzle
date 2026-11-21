@@ -136,6 +136,8 @@ public class TitleScreenController : MonoBehaviour
         if (isTransitioning)
             return;
 
+        AudioManager.PlayUIClick();
+
         hasStartedSession = true;
         isTransitioning = true;
         if (canvasGroup != null)

@@ -202,6 +202,7 @@ public class BottlesController : MonoBehaviour
     private System.Collections.IEnumerator DelayedShowWinScreen()
     {
         yield return new WaitForSeconds(winPopupDelay);
+        AudioManager.PlayLevelWin();
         GameController.Instance.NextLevel();
     }
 
