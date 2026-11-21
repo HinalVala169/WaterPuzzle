@@ -10,6 +10,7 @@ public class GameController : MonoBehaviour
 
     //quantidade de jogadas feitas
     private int moves = 0;
+    public bool HasMoves => moves > 0;
 
     //objeto da interface - tela de proximo level
     public GameObject nextLevelScreen;

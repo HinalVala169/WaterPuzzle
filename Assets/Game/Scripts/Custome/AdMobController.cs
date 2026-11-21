@@ -191,7 +191,19 @@ public class AdMobController : MonoBehaviour
         originalBottomPanelY.Clear();
         originalMiddlePos.Clear();
         originalMiddleSize.Clear();
-        if (isBannerLoaded && !AdManager.IsNoAdsPurchased)
+
+        if (!isInitialized || AdManager.IsNoAdsPurchased)
+            return;
+
+#if UNITY_EDITOR
+        if (!HasEditorBannerObject())
+        {
+            LoadBannerAd();
+            return;
+        }
+#endif
+
+        if (isBannerLoaded)
         {
             ApplyBannerSafeOffset();
 #if UNITY_EDITOR
@@ -201,6 +213,21 @@ public class AdMobController : MonoBehaviour
     }
 
 #if UNITY_EDITOR
+    private static bool HasEditorBannerObject()
+    {
+        foreach (Canvas c in FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            string n = c.gameObject.name;
+            if (n.IndexOf("BANNER", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                n.IndexOf("ADAPTIVE", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                n.IndexOf("LEADERBOARD", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static void EnsureEditorBannerOnTop()
     {
         foreach (Canvas c in FindObjectsOfType<Canvas>(true))

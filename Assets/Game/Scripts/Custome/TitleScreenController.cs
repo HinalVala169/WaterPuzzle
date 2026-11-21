@@ -375,7 +375,8 @@ public class TitleScreenController : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(0.08f);
 
-        // 2. Pop title cloud
+        // 2. Pop title cloud & play cute title vocal jingle
+        AudioManager.PlayTitleIntro();
         if (titleCloud != null)
             TrackCoroutine(StartCoroutine(PopScale(titleCloud, cloudPopDuration, 1.08f)));
 

@@ -79,7 +79,7 @@ public class GameManager : MonoBehaviour
 
     public void Reload()
     {
-        SceneManager.LoadScene("SampleScene");
+        SceneManager.LoadSceneAsync("SampleScene");
     }
 
     public void SaveData()
