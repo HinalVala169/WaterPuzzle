@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
@@ -38,6 +40,12 @@ public class UIController : MonoBehaviour
     [SerializeField] private string supportEmail = "support@example.com";
     [SerializeField] private string privacyPolicyUrl = "https://example.com/privacy";
     [SerializeField] private string userRightsUrl = "https://example.com/user-rights";
+
+    [Header("Feedback Backend (Formspree / Google Form)")]
+    [Tooltip("Paste a Formspree URL (https://formspree.io/f/xxxx) or Google Form formResponse URL to receive feedback silently without opening an email app.")]
+    [SerializeField] private string feedbackWebhookUrl = "";
+    [Tooltip("Optional: Google Form field ID (e.g. entry.123456789). Leave empty for Formspree or generic webhooks.")]
+    [SerializeField] private string googleFormEntryId = "";
 
     private bool isSoundOn;
     private bool isVibrationOn;
@@ -426,16 +434,22 @@ public class UIController : MonoBehaviour
         string message = feedbackInputField != null ? feedbackInputField.text.Trim() : string.Empty;
         if (string.IsNullOrEmpty(message))
         {
+            AudioManager.PlayError();
             Debug.LogWarning("Feedback message is empty.");
             return;
         }
 
+        AudioManager.PlayUIClick();
         Debug.Log("Feedback submitted: " + message);
 
-        if (!string.IsNullOrEmpty(supportEmail))
+        if (!string.IsNullOrEmpty(feedbackWebhookUrl))
+        {
+            StartCoroutine(SendFeedbackCoroutine(message));
+        }
+        else if (!string.IsNullOrEmpty(supportEmail))
         {
             string subject = Uri.EscapeDataString("Happy Water Sort Feedback");
-            string body = Uri.EscapeDataString(message);
+            string body = Uri.EscapeDataString(BuildFeedbackPayload(message));
             Application.OpenURL($"mailto:{supportEmail}?subject={subject}&body={body}");
         }
 
@@ -444,6 +458,46 @@ public class UIController : MonoBehaviour
 
         if (feedbackCanvas != null)
             feedbackCanvas.SetActive(false);
+    }
+
+    private string BuildFeedbackPayload(string message)
+    {
+        int level = PlayerPrefs.GetInt("Level", 1);
+        return $"{message}\n\n---\nApp: {Application.version} | Platform: {Application.platform} | Device: {SystemInfo.deviceModel} | Level: {level}";
+    }
+
+    private IEnumerator SendFeedbackCoroutine(string message)
+    {
+        string fullPayload = BuildFeedbackPayload(message);
+        WWWForm form = new WWWForm();
+
+        if (!string.IsNullOrEmpty(googleFormEntryId))
+        {
+            form.AddField(googleFormEntryId, fullPayload);
+        }
+        else
+        {
+            form.AddField("message", message);
+            form.AddField("appVersion", Application.version);
+            form.AddField("platform", Application.platform.ToString());
+            form.AddField("device", SystemInfo.deviceModel);
+            form.AddField("level", PlayerPrefs.GetInt("Level", 1).ToString());
+        }
+
+        using (UnityWebRequest req = UnityWebRequest.Post(feedbackWebhookUrl.Trim(), form))
+        {
+            req.timeout = 10;
+            yield return req.SendWebRequest();
+
+            if (req.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogWarning($"[UIController] Feedback upload failed: {req.error}");
+            }
+            else
+            {
+                Debug.Log("[UIController] Feedback uploaded successfully.");
+            }
+        }
     }
 
     public void OnRemoveAdsClick()
