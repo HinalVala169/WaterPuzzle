@@ -10,6 +10,7 @@ public class StopperController : MonoBehaviour
     [SerializeField] private int stopperSortingOrder = 2;
 
     private bool anim = false;
+    private bool hasCustomScale = false;
     private Vector3 baseScale;
     private Coroutine bottleReactionRoutine;
     private ParticleSystem runtimeSparkles;
@@ -32,13 +33,24 @@ public class StopperController : MonoBehaviour
 
     private void Awake()
     {
-        if (Mathf.Abs(widthScaleMultiplier - 1f) > 0.001f)
+        if (!hasCustomScale && Mathf.Abs(widthScaleMultiplier - 1f) > 0.001f)
         {
             Vector3 s = transform.localScale;
             transform.localScale = new Vector3(s.x * widthScaleMultiplier, s.y, s.z);
         }
 
         baseScale = transform.localScale;
+    }
+
+    /// <summary>
+    /// Sets the uniform (x, y, z) local scale for the bottle cap and keeps baseScale in sync.
+    /// </summary>
+    public void SetStopperScale(float scale)
+    {
+        Vector3 targetScale = new Vector3(scale, scale, scale);
+        hasCustomScale = true;
+        transform.localScale = targetScale;
+        baseScale = targetScale;
     }
 
     public void Animate()

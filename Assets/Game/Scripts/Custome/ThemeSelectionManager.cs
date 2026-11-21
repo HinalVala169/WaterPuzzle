@@ -1106,7 +1106,7 @@ public class ThemeSelectionManager : MonoBehaviour
             index < bottleUpSprites.Count &&
             index < bottleFillSprites.Count)
         {
-            bottlesController.ChangeBottleTheme(bottleUpSprites[index], bottleFillSprites[index]);
+            bottlesController.ChangeBottleTheme(bottleUpSprites[index], bottleFillSprites[index], index);
         }
     }
 

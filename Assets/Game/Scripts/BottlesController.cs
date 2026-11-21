@@ -119,7 +119,8 @@ public class BottlesController : MonoBehaviour
 
             bottle.SetTheme(
                 upSprite,
-                fillSprite
+                fillSprite,
+                index
             );
         }
 
@@ -131,8 +132,13 @@ public class BottlesController : MonoBehaviour
   
    public void ChangeBottleTheme(
         Sprite upSprite,
-        Sprite fillSprite)
+        Sprite fillSprite,
+        int bottleIndex = -1)
     {
+        int resolvedIndex = bottleIndex >= 0
+            ? bottleIndex
+            : (ThemeSelectionManager.Instance != null ? ThemeSelectionManager.Instance.GetCurrentBottleIndex() : -1);
+
         for (int i = 0;
             i < bottlesAmount;
             i++)
@@ -142,7 +148,8 @@ public class BottlesController : MonoBehaviour
                 bottleController[i]
                     .SetTheme(
                         upSprite,
-                        fillSprite
+                        fillSprite,
+                        resolvedIndex
                     );
             }
         }

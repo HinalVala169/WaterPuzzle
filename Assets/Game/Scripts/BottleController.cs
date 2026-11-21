@@ -293,9 +293,26 @@ public class BottleController : MonoBehaviour
         return null;
     }
 
+    private static readonly float[] StopperScalesByBottleIndex = new float[]
+    {
+        0.13f,      // Bottle 1
+        0.125f,     // Bottle 2
+        0.1018383f, // Bottle 3
+        0.1018383f, // Bottle 4
+        0.1018383f, // Bottle 5
+        0.1018383f, // Bottle 6
+        0.135f,     // Bottle 7
+        0.1018383f, // Bottle 8
+        0.1018383f, // Bottle 9
+        0.1018383f, // Bottle 10
+        0.125f,     // Bottle 11
+        0.1018383f  // Bottle 12
+    };
+
 public void SetTheme(
     Sprite upSprite,
-    Sprite fillSprite)
+    Sprite fillSprite,
+    int bottleIndex = -1)
 {
     if (bottleUpRenderer != null
         && upSprite != null)
@@ -310,7 +327,21 @@ public void SetTheme(
         bottleFillRenderer.sprite =
             fillSprite;
     }
+
+    ApplyStopperScale(bottleIndex);
 }
+
+    private void ApplyStopperScale(int bottleIndex)
+    {
+        if (bottleIndex < 0 || bottleIndex >= StopperScalesByBottleIndex.Length)
+            return;
+
+        StopperController targetStopper = stopper != null ? stopper : GetComponentInChildren<StopperController>(true);
+        if (targetStopper != null)
+        {
+            targetStopper.SetStopperScale(StopperScalesByBottleIndex[bottleIndex]);
+        }
+    }
 
     private void Update()
     {
