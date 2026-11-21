@@ -250,6 +250,7 @@ public class WinScreenAnimation : MonoBehaviour
         }
 
         // 4. Confetti splashes & stars burst outward from behind the cup
+        AudioManager.PlayParticleSparkle();
         List<RectTransform> allBurst = new List<RectTransform>(burstSplashes.Count + burstStars.Count);
         allBurst.AddRange(burstSplashes);
         allBurst.AddRange(burstStars);

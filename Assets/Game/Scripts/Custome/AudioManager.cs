@@ -24,6 +24,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip sfxLevelWin;
     [SerializeField] private AudioClip sfxCoin;
     [SerializeField] private AudioClip sfxError;
+    [SerializeField] private AudioClip sfxParticleSparkle;
 
     private AudioSource bgmSource;
     private AudioSource sfxSource;
@@ -112,6 +113,7 @@ public class AudioManager : MonoBehaviour
         if (sfxLevelWin == null) sfxLevelWin = Resources.Load<AudioClip>("Audio/sfx_level_win");
         if (sfxCoin == null) sfxCoin = Resources.Load<AudioClip>("Audio/sfx_coin");
         if (sfxError == null) sfxError = Resources.Load<AudioClip>("Audio/sfx_error");
+        if (sfxParticleSparkle == null) sfxParticleSparkle = Resources.Load<AudioClip>("Audio/sfx_particle_sparkle");
     }
 
     private void PlayBGM()
@@ -203,6 +205,12 @@ public class AudioManager : MonoBehaviour
     {
         if (Instance != null)
             Instance.PlaySFX(Instance.sfxError, 0.97f, 1.02f, 0.85f);
+    }
+
+    public static void PlayParticleSparkle()
+    {
+        if (Instance != null)
+            Instance.PlaySFX(Instance.sfxParticleSparkle, 0.96f, 1.05f, 0.9f);
     }
 }
 

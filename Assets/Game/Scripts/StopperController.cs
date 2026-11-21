@@ -75,6 +75,7 @@ public class StopperController : MonoBehaviour
 
     public void PlayCompletionEffectOnly()
     {
+        AudioManager.PlayParticleSparkle();
         PlayBottleBounce();
         PlaySplashFanBurst();
         PlayRuntimeSparkles();
@@ -83,6 +84,7 @@ public class StopperController : MonoBehaviour
 
     private void PlayEffect()
     {
+        AudioManager.PlayParticleSparkle();
         if (animator != null)
         {
             SpriteRenderer effectSR = animator.GetComponent<SpriteRenderer>();

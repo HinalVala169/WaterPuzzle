@@ -369,6 +369,7 @@ public class UIController : MonoBehaviour
         isNotificationOn = false;
         PlayerPrefs.SetInt("Notification", 0);
         PlayerPrefs.Save();
+        LocalNotificationManager.DisableNotifications();
         UpdateUI();
     }
 
@@ -377,6 +378,7 @@ public class UIController : MonoBehaviour
         isNotificationOn = true;
         PlayerPrefs.SetInt("Notification", 1);
         PlayerPrefs.Save();
+        LocalNotificationManager.EnableNotifications();
 
         if (notificationCanvas != null)
             notificationCanvas.SetActive(false);
