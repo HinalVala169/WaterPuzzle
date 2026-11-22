@@ -682,7 +682,7 @@ public class ThemeSelectionManager : MonoBehaviour
         rt.anchorMin = new Vector2(1f, 1f);
         rt.anchorMax = new Vector2(1f, 1f);
         rt.pivot = new Vector2(1f, 1f);
-        rt.anchoredPosition = new Vector2(-28f, -40f);
+        rt.anchoredPosition = new Vector2(-36f, -56f);
         rt.sizeDelta = new Vector2(220f, 68f);
 
         Image bgImg = badge.GetComponent<Image>();
@@ -725,6 +725,9 @@ public class ThemeSelectionManager : MonoBehaviour
         coinsText.fontStyle = FontStyles.Bold;
         coinsText.color = Color.white;
         coinsText.alignment = TextAlignmentOptions.Center;
+
+        if (ResponsiveUIManager.Instance != null)
+            ResponsiveUIManager.Instance.ApplyResponsiveAdjustments(force: true);
     }
 
     private static Transform FindChildRecursive(Transform root, string targetName)
