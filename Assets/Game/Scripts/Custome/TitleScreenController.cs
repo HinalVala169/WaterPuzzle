@@ -68,16 +68,29 @@ public class TitleScreenController : MonoBehaviour
     private RectTransform bgRect;
     private RectTransform startButtonRect;
     private readonly List<CachedRect> cachedRects = new List<CachedRect>();
+    private readonly List<Vector2> originalBubblePositions = new List<Vector2>();
     private readonly List<Coroutine> activeCoroutines = new List<Coroutine>();
     private readonly List<GameObject> hiddenGameplayButtons = new List<GameObject>();
 
     private bool initialized;
     private bool isTransitioning;
     private bool didPauseGameplay;
+    private Vector2 lastLayoutSize = Vector2.zero;
 
     private void Awake()
     {
         InitializeReferences();
+    }
+
+    private void Start()
+    {
+        RefreshResponsiveLayoutIfNeeded();
+    }
+
+    private void OnRectTransformDimensionsChange()
+    {
+        if (initialized && gameObject.activeInHierarchy)
+            RefreshResponsiveLayoutIfNeeded();
     }
 
     private void OnEnable()
@@ -96,6 +109,7 @@ public class TitleScreenController : MonoBehaviour
         HideOtherGameplayButtons();
         StopAllTitleAnimations();
         RestoreCachedTransforms();
+        RefreshResponsiveLayoutIfNeeded();
 
         if (canvasGroup != null)
         {
@@ -198,16 +212,35 @@ public class TitleScreenController : MonoBehaviour
             }
         }
 
+        originalBubblePositions.Clear();
+        for (int i = 0; i < bubbles.Count; i++)
+            originalBubblePositions.Add(bubbles[i] != null ? bubbles[i].anchoredPosition : Vector2.zero);
+
         ApplyResponsiveLayout();
         CacheAllRects();
         initialized = true;
     }
 
+    private void RefreshResponsiveLayoutIfNeeded()
+    {
+        RectTransform canvasRt = GetComponent<RectTransform>();
+        if (canvasRt == null) return;
+
+        Vector2 currentSize = canvasRt.rect.size;
+        if (currentSize.x <= 0f || currentSize.y <= 0f) return;
+        if (Vector2.Distance(currentSize, lastLayoutSize) < 0.5f) return;
+
+        ApplyResponsiveLayout();
+        CacheAllRects();
+    }
+
     private void ApplyResponsiveLayout()
     {
+        Canvas.ForceUpdateCanvases();
         RectTransform canvasRt = GetComponent<RectTransform>();
         float w = canvasRt != null && canvasRt.rect.width > 0f ? canvasRt.rect.width : 1080f;
         float h = canvasRt != null && canvasRt.rect.height > 0f ? canvasRt.rect.height : 1920f;
+        lastLayoutSize = new Vector2(w, h);
 
         // 1. Background: envelope-fill without aspect distortion (1530 x 2992)
         if (bgRect != null)
@@ -254,9 +287,9 @@ public class TitleScreenController : MonoBehaviour
         float scaleY = h / 1920f;
         for (int i = 0; i < bubbles.Count; i++)
         {
-            if (bubbles[i] != null)
+            if (bubbles[i] != null && i < originalBubblePositions.Count)
             {
-                Vector2 p = bubbles[i].anchoredPosition;
+                Vector2 p = originalBubblePositions[i];
                 bubbles[i].anchoredPosition = new Vector2(p.x * scaleX, p.y * scaleY);
             }
         }

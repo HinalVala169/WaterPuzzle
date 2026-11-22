@@ -30,6 +30,9 @@ public class AdMobController : MonoBehaviour
     private bool isInitialized;
     private bool isBannerLoaded;
     private float currentBannerPixelHeight;
+    private int lastScreenW = -1;
+    private int lastScreenH = -1;
+    private Rect lastSafeArea = Rect.zero;
 
     private readonly Queue<Action> mainThreadQueue = new Queue<Action>();
     private readonly Dictionary<RectTransform, float> originalBottomPanelY = new Dictionary<RectTransform, float>();
@@ -107,6 +110,15 @@ public class AdMobController : MonoBehaviour
                 action?.Invoke();
             }
         }
+
+        if (Screen.width != lastScreenW || Screen.height != lastScreenH || Screen.safeArea != lastSafeArea)
+        {
+            lastScreenW = Screen.width;
+            lastScreenH = Screen.height;
+            lastSafeArea = Screen.safeArea;
+            if (isBannerLoaded && !AdManager.IsNoAdsPurchased)
+                RefreshBannerOffset();
+        }
     }
 
     private void EnqueueMainThread(Action action)
@@ -146,13 +158,7 @@ public class AdMobController : MonoBehaviour
             EnqueueMainThread(() =>
             {
                 isBannerLoaded = true;
-                float px = bannerView != null ? bannerView.GetHeightInPixels() : 0f;
-                if (px <= 0f)
-                {
-                    float dpi = Screen.dpi > 0f ? Screen.dpi : 320f;
-                    px = adaptiveSize.Height * (dpi / 160f);
-                }
-                currentBannerPixelHeight = Mathf.Max(px, 120f);
+                currentBannerPixelHeight = ResolveBannerPixelHeight(adaptiveSize);
                 ApplyBannerSafeOffset();
 #if UNITY_EDITOR
                 EnsureEditorBannerOnTop();
@@ -243,12 +249,82 @@ public class AdMobController : MonoBehaviour
     }
 #endif
 
-    private void ApplyBannerSafeOffset()
+    public void RefreshBannerOffset()
     {
-        if (!isBannerLoaded || AdManager.IsNoAdsPurchased || currentBannerPixelHeight <= 0f)
+        if (!isBannerLoaded || AdManager.IsNoAdsPurchased)
             return;
 
-        foreach (RectTransform rt in FindObjectsOfType<RectTransform>(true))
+        currentBannerPixelHeight = ResolveBannerPixelHeight(null);
+        ApplyBannerSafeOffset();
+    }
+
+    private float ResolveBannerPixelHeight(AdSize adaptiveSize)
+    {
+        float px = 0f;
+
+#if UNITY_EDITOR
+        px = GetEditorBannerPixelHeight();
+#endif
+
+        if (px <= 0f && bannerView != null)
+            px = bannerView.GetHeightInPixels();
+
+        if (px <= 0f)
+        {
+            float dpi = Screen.dpi > 0f ? Screen.dpi : 160f;
+            float dpHeight = adaptiveSize != null ? adaptiveSize.Height : 50f;
+            px = dpHeight * (dpi / 160f);
+        }
+
+        return Mathf.Clamp(px, Screen.height * 0.05f, Screen.height * 0.18f);
+    }
+
+#if UNITY_EDITOR
+    private static float GetEditorBannerPixelHeight()
+    {
+        Vector3[] corners = new Vector3[4];
+        foreach (Canvas c in FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            string n = c.gameObject.name;
+            if (n.IndexOf("BANNER", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                n.IndexOf("ADAPTIVE", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                n.IndexOf("LEADERBOARD", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                float bestPx = 0f;
+                foreach (UnityEngine.UI.Image img in c.GetComponentsInChildren<UnityEngine.UI.Image>(false))
+                {
+                    RectTransform rt = img.rectTransform;
+                    if (rt.rect.height <= 0f) continue;
+
+                    rt.GetWorldCorners(corners);
+                    float px = Mathf.Abs(corners[1].y - corners[0].y);
+                    // Skip full-screen wrapper containers
+                    if (px >= Screen.height * 0.45f) continue;
+
+                    if (px > bestPx) bestPx = px;
+                }
+
+                if (bestPx > 0f)
+                    return bestPx;
+            }
+        }
+        return 0f;
+    }
+#endif
+
+    private void ApplyBannerSafeOffset()
+    {
+        if (!isBannerLoaded || AdManager.IsNoAdsPurchased)
+            return;
+
+        if (currentBannerPixelHeight <= 0f)
+            currentBannerPixelHeight = ResolveBannerPixelHeight(null);
+
+        Canvas.ForceUpdateCanvases();
+        float bottomSafePixels = Mathf.Max(0f, Screen.safeArea.y);
+        float effectiveBannerPixels = Mathf.Max(currentBannerPixelHeight, bottomSafePixels);
+
+        foreach (RectTransform rt in FindObjectsByType<RectTransform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (!rt.name.Equals("BottomPanel", StringComparison.OrdinalIgnoreCase))
                 continue;
@@ -258,32 +334,40 @@ public class AdMobController : MonoBehaviour
 
             Canvas rootCanvas = rt.GetComponentInParent<Canvas>();
             float scale = (rootCanvas != null && rootCanvas.scaleFactor > 0f) ? rootCanvas.scaleFactor : 1f;
-            float offsetInCanvas = (currentBannerPixelHeight / scale) + 16f;
+            float offsetInCanvas = (effectiveBannerPixels / scale) + 12f;
 
             Vector2 pos = rt.anchoredPosition;
             pos.y = originalBottomPanelY[rt] + offsetInCanvas;
             rt.anchoredPosition = pos;
 
             // If this BottomPanel sits below a sibling "middle content" scroll container,
-            // shrink its bottom edge by the same offset so BottomPanel never overlaps the cards.
+            // let ResponsiveUIManager handle SelectionCanvas (which has ThemePanel + ADBTN),
+            // and only shrink generic "middle content" containers.
             if (rt.parent != null)
             {
                 Transform middleTf = rt.parent.Find("middle content");
                 if (middleTf != null && middleTf is RectTransform middleRt)
                 {
-                    if (!originalMiddlePos.ContainsKey(middleRt))
+                    bool isSelectionScreen = middleRt.Find("ThemePanel") != null || rt.parent.Find("ThemePanel") != null;
+                    if (!isSelectionScreen)
                     {
-                        originalMiddlePos[middleRt] = middleRt.anchoredPosition;
-                        originalMiddleSize[middleRt] = middleRt.sizeDelta;
-                    }
+                        if (!originalMiddlePos.ContainsKey(middleRt))
+                        {
+                            originalMiddlePos[middleRt] = middleRt.anchoredPosition;
+                            originalMiddleSize[middleRt] = middleRt.sizeDelta;
+                        }
 
-                    Vector2 origPos = originalMiddlePos[middleRt];
-                    Vector2 origSize = originalMiddleSize[middleRt];
-                    middleRt.sizeDelta = new Vector2(origSize.x, Mathf.Max(200f, origSize.y - offsetInCanvas));
-                    middleRt.anchoredPosition = new Vector2(origPos.x, origPos.y + offsetInCanvas * 0.5f);
+                        Vector2 origPos = originalMiddlePos[middleRt];
+                        Vector2 origSize = originalMiddleSize[middleRt];
+                        middleRt.sizeDelta = new Vector2(origSize.x, Mathf.Max(200f, origSize.y - offsetInCanvas));
+                        middleRt.anchoredPosition = new Vector2(origPos.x, origPos.y + offsetInCanvas * 0.5f);
+                    }
                 }
             }
         }
+
+        if (ResponsiveUIManager.Instance != null)
+            ResponsiveUIManager.Instance.FixSelectionLayout();
     }
 
     private void RestoreBottomPanels()

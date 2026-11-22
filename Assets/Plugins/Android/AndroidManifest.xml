@@ -2,7 +2,22 @@
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Required for Google AdMob: load ads and check connection state -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application>
+
+        <!-- Google AdMob App ID (NOT the ad unit ID).
+             Currently Google's official TEST App ID.
+             Replace with your real App ID (format: ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY)
+             from AdMob Console > Apps > App settings before release. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-9701472395956641~8690420830"
+            tools:replace="android:value" />
+
         <!--Used when Application Entry is set to Activity, otherwise remove this activity block-->
         <activity android:name="com.unity3d.player.UnityPlayerActivity"
                   android:theme="@style/UnityThemeSelector">
@@ -12,7 +27,8 @@
             </intent-filter>
             <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
         </activity>
-        <!--Used when Application Entry is set to GameActivity, otherwise remove this activity block-->
+
+        <!--Used when Application Entry is set to GameActivity, otherwise remove this activity block
         <activity android:name="com.unity3d.player.UnityPlayerGameActivity"
                   android:theme="@style/BaseUnityGameActivityTheme">
             <intent-filter>
@@ -22,5 +38,7 @@
             <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
             <meta-data android:name="android.app.lib_name" android:value="game" />
         </activity>
+        -->
+
     </application>
 </manifest>
